@@ -1,0 +1,16 @@
+{
+  "without_other_vaccine_history": [
+    "age",
+    "health_status",
+    "hbm_threat_score",
+    "hbm_barrier_score"
+  ],
+  "with_other_vaccine_history": [
+    "age",
+    "health_status",
+    "hbm_threat_score",
+    "hbm_barrier_score",
+    "SHTCVD191_A",
+    "SHTPNUEV_A"
+  ]
+}

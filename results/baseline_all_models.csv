@@ -1,0 +1,15 @@
+scenario,n_features,model,accuracy,roc_auc,f1_positive,source
+without_other_vaccine_history,67,logistic,0.6766,0.7433,0.664,user-supplied baseline console output
+without_other_vaccine_history,67,random_forest,0.6829,0.7507,0.666,user-supplied baseline console output
+without_other_vaccine_history,67,gradient_boosting,0.6867,0.7553,0.6691,user-supplied baseline console output
+without_other_vaccine_history,67,svm,0.6786,0.7477,0.6636,user-supplied baseline console output
+without_other_vaccine_history,67,mlp,0.6824,0.7506,0.658,user-supplied baseline console output
+without_other_vaccine_history,67,knn,0.6289,0.6708,0.6119,user-supplied baseline console output
+without_other_vaccine_history,67,xgboost,0.6871,0.757,0.6697,user-supplied baseline console output
+with_other_vaccine_history,75,logistic,0.7604,0.8398,0.7484,user-supplied baseline console output
+with_other_vaccine_history,75,random_forest,0.7617,0.8377,0.7471,user-supplied baseline console output
+with_other_vaccine_history,75,gradient_boosting,0.763,0.8444,0.7506,user-supplied baseline console output
+with_other_vaccine_history,75,svm,0.763,0.8356,0.7552,user-supplied baseline console output
+with_other_vaccine_history,75,mlp,0.7587,0.8402,0.7509,user-supplied baseline console output
+with_other_vaccine_history,75,knn,0.7102,0.7689,0.6981,user-supplied baseline console output
+with_other_vaccine_history,75,xgboost,0.7647,0.8452,0.7519,user-supplied baseline console output

@@ -1,0 +1,6 @@
+model_family,method,variant,test_n,accuracy,roc_auc,f1,notes
+HBM/LLM,HBM5-NV,pattern only,2000,0.6255,0.6812456189,0.6597001363,All non-target vaccine variables are explicitly excluded.
+HBM/LLM,HBM5-NV,LLM without memory,2000,0.6135,0.6583758778,0.6201474201,All non-target vaccine variables are explicitly excluded.
+HBM/LLM,HBM5-NV,LLM with reflective memory,2000,0.5705,0.5807764009,0.5077363897,All non-target vaccine variables are explicitly excluded.
+ML,ML baseline,logistic,,0.6766,0.7433,0.664,Reported baseline result; exact split metadata was not included in the supplied output.
+ML,ML baseline,xgboost,,0.6871,0.757,0.6697,Reported baseline result; exact split metadata was not included in the supplied output.

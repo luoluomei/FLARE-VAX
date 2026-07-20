@@ -1,0 +1,80 @@
+[
+  {
+    "id": "V1",
+    "name": "HBM2 three-call direct transfer",
+    "script": "scripts/10_hbm2_three_call.py",
+    "input": "cleaned HBM2 CSV",
+    "other_vaccine_history": false,
+    "constructs": ["observed threat", "structural barriers"],
+    "patterns": 4,
+    "calls_per_respondent": 3,
+    "reflection_calls": "none; incorrect training examples are stored directly",
+    "memory": "cosine retrieval over training errors; frozen during test",
+    "role": "closest minimal transfer of the FLARE perception-pattern-decision pipeline"
+  },
+  {
+    "id": "V1-Async",
+    "name": "HBM2 three-call concurrent implementation",
+    "script": "scripts/11_hbm2_three_call_async.py",
+    "input": "cleaned HBM2 CSV",
+    "other_vaccine_history": false,
+    "constructs": ["observed threat", "structural barriers"],
+    "patterns": 4,
+    "calls_per_respondent": 3,
+    "reflection_calls": "none",
+    "memory": "same training-error memory as V1; batch-level updates",
+    "role": "engineering acceleration, not a new research method"
+  },
+  {
+    "id": "V2",
+    "name": "HBM2 reflective memory and probability calibration",
+    "script": "scripts/20_hbm2_reflection_calibration.py",
+    "input": "cleaned HBM2 CSV",
+    "other_vaccine_history": false,
+    "constructs": ["observed threat", "structural barriers"],
+    "patterns": 4,
+    "calls_per_respondent": 3,
+    "reflection_calls": "one additional call for selected training errors",
+    "memory": "structured reflection memory; frozen during test",
+    "role": "adds explicit Reflexion-style error analysis and threshold calibration"
+  },
+  {
+    "id": "V3",
+    "name": "HBM2 pattern anchor and balanced dual memory",
+    "script": "scripts/30_hbm2_pattern_anchor_dual_memory.py",
+    "input": "cleaned HBM2 CSV",
+    "other_vaccine_history": false,
+    "constructs": ["observed threat", "structural barriers"],
+    "patterns": 4,
+    "calls_per_respondent": 3,
+    "reflection_calls": "selective high-confidence error reflection",
+    "memory": "balanced correct prototypes plus error reflections",
+    "role": "turns pattern base rates into explicit anchors and asks the LLM for residual adjustment"
+  },
+  {
+    "id": "V4",
+    "name": "HBM5 with prior-vaccine acceptance proxy",
+    "script": "scripts/40_hbm5_prior_vaccine_reflective_memory.py",
+    "input": "raw adult24.csv",
+    "other_vaccine_history": true,
+    "constructs": ["threat", "vaccine acceptance/benefit proxy", "barriers", "healthcare cues", "navigation self-efficacy"],
+    "patterns": 8,
+    "calls_per_respondent": 1,
+    "reflection_calls": "selective high-confidence error reflection",
+    "memory": "distilled reflective exception rules",
+    "role": "expands from two constructs to five observed proxies and three meta-dimensions"
+  },
+  {
+    "id": "V5",
+    "name": "HBM5 without any other-vaccine history",
+    "script": "scripts/50_hbm5_no_prior_vaccine_reflective_memory.py",
+    "input": "raw adult24.csv",
+    "other_vaccine_history": false,
+    "constructs": ["threat", "preventive engagement", "barriers", "healthcare cues", "navigation self-efficacy"],
+    "patterns": 8,
+    "calls_per_respondent": 1,
+    "reflection_calls": "selective high-confidence error reflection",
+    "memory": "distilled structured memories; evaluated with and without memory",
+    "role": "strict leakage-robust version that replaces prior vaccine behavior with preventive engagement"
+  }
+]

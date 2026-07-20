@@ -1,0 +1,94 @@
+{
+  "experiment": "flare_vax_hbm2_three_call",
+  "version": "hbm2_openai_colab_v2_concurrent",
+  "created_at": "2026-07-16T06:14:38.368613+00:00",
+  "run_config": {
+    "version": "hbm2_openai_colab_v2_concurrent",
+    "model": "gpt-4o-mini",
+    "data_path": "/content/drive/MyDrive/Vaccination-Decision-Model/Data/nhis2024_hbm2_clean.csv",
+    "data_size_bytes": 14008143,
+    "sample_size": 1000,
+    "balanced_sample": true,
+    "train_ratio": 0.7,
+    "random_seed": 42,
+    "memory_k": 3,
+    "memory_features": [
+      "age",
+      "health_status",
+      "chronic_or_risk_count",
+      "hbm_threat_score",
+      "hbm_barrier_count",
+      "hbm_barrier_score",
+      "hbm2_pattern",
+      "uninsured_yes",
+      "medicare_yes",
+      "medicaid_yes",
+      "private_insurance_yes",
+      "usual_care_place",
+      "retail_clinic_visits_12m",
+      "last_doctor_visit",
+      "used_internet_test_results_yes",
+      "used_internet_communicate_doctor_yes",
+      "education",
+      "income_poverty_ratio",
+      "time_since_wellness_visit"
+    ],
+    "pattern_prior_mode": "theory",
+    "include_sensitive_context": true,
+    "assessment_max_tokens": 140,
+    "decision_max_tokens": 30,
+    "temperature": 0.0,
+    "concurrent_samples": 24,
+    "max_concurrent_requests": 48,
+    "memory_update_mode": "batch_boundary",
+    "fingerprint": "99a3eb568dea3c9497d41f279846551a51419c01acb8f429ec4aa74b5ccbce38"
+  },
+  "status_counts_latest_entries": {
+    "ok": 1000
+  },
+  "train_metrics": {
+    "n_valid": 700,
+    "accuracy": 0.6371428571428571,
+    "balanced_accuracy": 0.6371428571428571,
+    "precision": 0.6764705882352942,
+    "recall": 0.5257142857142857,
+    "specificity": 0.7485714285714286,
+    "f1": 0.5916398713826366,
+    "actual_yes_rate": 0.5,
+    "predicted_yes_rate": 0.38857142857142857,
+    "confusion_matrix": {
+      "TN": 262,
+      "FP": 88,
+      "FN": 166,
+      "TP": 184
+    }
+  },
+  "test_metrics": {
+    "n_valid": 300,
+    "accuracy": 0.61,
+    "balanced_accuracy": 0.61,
+    "precision": 0.6460176991150443,
+    "recall": 0.4866666666666667,
+    "specificity": 0.7333333333333333,
+    "f1": 0.5551330798479087,
+    "actual_yes_rate": 0.5,
+    "predicted_yes_rate": 0.37666666666666665,
+    "confusion_matrix": {
+      "TN": 110,
+      "FP": 40,
+      "FN": 77,
+      "TP": 73
+    }
+  },
+  "usage_total": {
+    "input_tokens": 1832687,
+    "output_tokens": 77491,
+    "total_tokens": 1910178
+  },
+  "n_completed": 1000,
+  "files": {
+    "sample_log": "/content/drive/MyDrive/Vaccination-Decision-Model/Results/gpt-4o/logs/sample_log.jsonl",
+    "predictions": "/content/drive/MyDrive/Vaccination-Decision-Model/Results/gpt-4o/predictions.csv",
+    "pattern_metrics": "/content/drive/MyDrive/Vaccination-Decision-Model/Results/gpt-4o/pattern_metrics.csv"
+  }
+}

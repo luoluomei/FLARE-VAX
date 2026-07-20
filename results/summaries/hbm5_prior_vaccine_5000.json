@@ -1,0 +1,342 @@
+{
+  "experiment": "flare_vax_hbm5_offline_reflective_memory",
+  "version": "hbm5_openai_v1_offline_reflective_memory",
+  "created_at": "2026-07-19T14:13:29.426809+00:00",
+  "run_config": {
+    "version": "hbm5_openai_v1_offline_reflective_memory",
+    "created_at": "2026-07-19T13:51:52.948840+00:00",
+    "input_csv": "/content/drive/MyDrive/Vaccination-Decision-Model/Data/adult24.csv",
+    "model": "gpt-4o-mini-2024-07-18",
+    "reflection_model": "gpt-4o-mini-2024-07-18",
+    "sample_size": 5000,
+    "class_sampling": "proportional",
+    "split_ratios": {
+      "memory": 0.4,
+      "calibration": 0.2,
+      "test": 0.4
+    },
+    "pattern_thresholds": {
+      "motivation": 2.48125,
+      "capability": 4.158333333333333,
+      "activation": 3.8749999999999996
+    },
+    "base_rate_prior_strength": 10.0,
+    "reflection_cutoffs": {
+      "low": 30.0,
+      "high": 70.0
+    },
+    "memory": {
+      "top_k": 2,
+      "min_similarity": 0.45,
+      "max_items": 32,
+      "max_per_pattern_direction": 2
+    },
+    "test_without_memory": false,
+    "fingerprint": "fc0ca41dfc4e6df3788402d2b3b4de72f076d4ddc70173c53683cd105c794684"
+  },
+  "n_selected": 5000,
+  "split_sizes": {
+    "memory": 2000,
+    "calibration": 1000,
+    "test": 2000
+  },
+  "pattern_base_rates": {
+    "High Motivation / High Capability / Strong Cue": {
+      "n": 403,
+      "yes": 310.0,
+      "raw_rate": 0.7692307692307693,
+      "smoothed_rate": 0.7620702179176756
+    },
+    "High Motivation / High Capability / Weak Cue": {
+      "n": 175,
+      "yes": 118.0,
+      "raw_rate": 0.6742857142857143,
+      "smoothed_rate": 0.6634324324324324
+    },
+    "High Motivation / Low Capability / Strong Cue": {
+      "n": 224,
+      "yes": 153.0,
+      "raw_rate": 0.6830357142857143,
+      "smoothed_rate": 0.6740811965811966
+    },
+    "High Motivation / Low Capability / Weak Cue": {
+      "n": 201,
+      "yes": 122.0,
+      "raw_rate": 0.6069651741293532,
+      "smoothed_rate": 0.6006398104265402
+    },
+    "Low Motivation / High Capability / Strong Cue": {
+      "n": 262,
+      "yes": 97.0,
+      "raw_rate": 0.3702290076335878,
+      "smoothed_rate": 0.37402573529411764
+    },
+    "Low Motivation / High Capability / Weak Cue": {
+      "n": 185,
+      "yes": 51.0,
+      "raw_rate": 0.2756756756756757,
+      "smoothed_rate": 0.2858205128205128
+    },
+    "Low Motivation / Low Capability / Strong Cue": {
+      "n": 189,
+      "yes": 36.0,
+      "raw_rate": 0.19047619047619047,
+      "smoothed_rate": 0.20469849246231156
+    },
+    "Low Motivation / Low Capability / Weak Cue": {
+      "n": 361,
+      "yes": 60.0,
+      "raw_rate": 0.16620498614958448,
+      "smoothed_rate": 0.17448787061994608
+    },
+    "__overall__": {
+      "n": 2000,
+      "yes": 947.0,
+      "raw_rate": 0.4735,
+      "smoothed_rate": 0.4735
+    }
+  },
+  "reflection_candidates": 33,
+  "final_memory_items": 13,
+  "selected_llm_threshold": 50.0,
+  "selected_pattern_threshold": 50.0,
+  "calibration": {
+    "llm_with_memory": {
+      "fallback": false,
+      "probability_field": "probability_yes",
+      "threshold_metric": "balanced_accuracy",
+      "selected_threshold": 50.0,
+      "selected_metric_value": 0.7332532051282051,
+      "metrics_at_50": {
+        "n_valid": 1000,
+        "actual_yes_rate": 0.48,
+        "mean_probability_yes": 0.4602707479151855,
+        "threshold": 50.0,
+        "accuracy": 0.734,
+        "balanced_accuracy": 0.7332532051282051,
+        "precision": 0.7266949152542372,
+        "recall": 0.7145833333333333,
+        "specificity": 0.7519230769230769,
+        "f1": 0.7205882352941176,
+        "predicted_yes_rate": 0.472,
+        "confusion_matrix": {
+          "TN": 391,
+          "FP": 129,
+          "FN": 137,
+          "TP": 343
+        },
+        "brier_score": 0.20397408722289187,
+        "log_loss": 0.5969949020705326,
+        "roc_auc": 0.7431129807692306,
+        "average_precision": 0.6930398869762661
+      },
+      "metrics_selected": {
+        "n_valid": 1000,
+        "actual_yes_rate": 0.48,
+        "mean_probability_yes": 0.4602707479151855,
+        "threshold": 50.0,
+        "accuracy": 0.734,
+        "balanced_accuracy": 0.7332532051282051,
+        "precision": 0.7266949152542372,
+        "recall": 0.7145833333333333,
+        "specificity": 0.7519230769230769,
+        "f1": 0.7205882352941176,
+        "predicted_yes_rate": 0.472,
+        "confusion_matrix": {
+          "TN": 391,
+          "FP": 129,
+          "FN": 137,
+          "TP": 343
+        },
+        "brier_score": 0.20397408722289187,
+        "log_loss": 0.5969949020705326,
+        "roc_auc": 0.7431129807692306,
+        "average_precision": 0.6930398869762661
+      }
+    },
+    "pattern_only": {
+      "fallback": false,
+      "probability_field": "base_probability",
+      "threshold_metric": "balanced_accuracy",
+      "selected_threshold": 50.0,
+      "selected_metric_value": 0.7318910256410256,
+      "metrics_at_50": {
+        "n_valid": 1000,
+        "actual_yes_rate": 0.48,
+        "mean_probability_yes": 0.4761921630095251,
+        "threshold": 50.0,
+        "accuracy": 0.731,
+        "balanced_accuracy": 0.7318910256410256,
+        "precision": 0.7056530214424951,
+        "recall": 0.7541666666666667,
+        "specificity": 0.7096153846153846,
+        "f1": 0.729103726082578,
+        "predicted_yes_rate": 0.513,
+        "confusion_matrix": {
+          "TN": 369,
+          "FP": 151,
+          "FN": 118,
+          "TP": 362
+        },
+        "brier_score": 0.1934675974268833,
+        "log_loss": 0.5739913047567555,
+        "roc_auc": 0.7660616987179487,
+        "average_precision": 0.6990417289452466
+      },
+      "metrics_selected": {
+        "n_valid": 1000,
+        "actual_yes_rate": 0.48,
+        "mean_probability_yes": 0.4761921630095251,
+        "threshold": 50.0,
+        "accuracy": 0.731,
+        "balanced_accuracy": 0.7318910256410256,
+        "precision": 0.7056530214424951,
+        "recall": 0.7541666666666667,
+        "specificity": 0.7096153846153846,
+        "f1": 0.729103726082578,
+        "predicted_yes_rate": 0.513,
+        "confusion_matrix": {
+          "TN": 369,
+          "FP": 151,
+          "FN": 118,
+          "TP": 362
+        },
+        "brier_score": 0.1934675974268833,
+        "log_loss": 0.5739913047567555,
+        "roc_auc": 0.7660616987179487,
+        "average_precision": 0.6990417289452466
+      }
+    }
+  },
+  "metrics": {
+    "train_no_memory_at_50": {
+      "n_valid": 2000,
+      "actual_yes_rate": 0.4695,
+      "mean_probability_yes": 0.44880667848493316,
+      "threshold": 50.0,
+      "accuracy": 0.7155,
+      "balanced_accuracy": 0.7139782129303137,
+      "precision": 0.7002164502164502,
+      "recall": 0.6890308839190629,
+      "specificity": 0.7389255419415646,
+      "f1": 0.6945786366076221,
+      "predicted_yes_rate": 0.462,
+      "confusion_matrix": {
+        "TN": 784,
+        "FP": 277,
+        "FN": 292,
+        "TP": 647
+      },
+      "brier_score": 0.1879869432732642,
+      "log_loss": 0.5815833820431557,
+      "roc_auc": 0.7625619931766102,
+      "average_precision": 0.7173689537689806
+    },
+    "calibration_with_memory_selected": {
+      "n_valid": 1000,
+      "actual_yes_rate": 0.48,
+      "mean_probability_yes": 0.4602707479151855,
+      "threshold": 50.0,
+      "accuracy": 0.734,
+      "balanced_accuracy": 0.7332532051282051,
+      "precision": 0.7266949152542372,
+      "recall": 0.7145833333333333,
+      "specificity": 0.7519230769230769,
+      "f1": 0.7205882352941176,
+      "predicted_yes_rate": 0.472,
+      "confusion_matrix": {
+        "TN": 391,
+        "FP": 129,
+        "FN": 137,
+        "TP": 343
+      },
+      "brier_score": 0.20397408722289187,
+      "log_loss": 0.5969949020705326,
+      "roc_auc": 0.7431129807692306,
+      "average_precision": 0.6930398869762661
+    },
+    "test_with_memory_at_50": {
+      "n_valid": 2000,
+      "actual_yes_rate": 0.471,
+      "mean_probability_yes": 0.45911369337425006,
+      "threshold": 50.0,
+      "accuracy": 0.7195,
+      "balanced_accuracy": 0.7177093743352638,
+      "precision": 0.7086527929901424,
+      "recall": 0.6868365180467091,
+      "specificity": 0.7485822306238186,
+      "f1": 0.6975741239892184,
+      "predicted_yes_rate": 0.4565,
+      "confusion_matrix": {
+        "TN": 792,
+        "FP": 266,
+        "FN": 295,
+        "TP": 647
+      },
+      "brier_score": 0.20697553456747125,
+      "log_loss": 0.6044418953530014,
+      "roc_auc": 0.733228079258626,
+      "average_precision": 0.6704425645491635
+    },
+    "test_with_memory_selected": {
+      "n_valid": 2000,
+      "actual_yes_rate": 0.471,
+      "mean_probability_yes": 0.45911369337425006,
+      "threshold": 50.0,
+      "accuracy": 0.7195,
+      "balanced_accuracy": 0.7177093743352638,
+      "precision": 0.7086527929901424,
+      "recall": 0.6868365180467091,
+      "specificity": 0.7485822306238186,
+      "f1": 0.6975741239892184,
+      "predicted_yes_rate": 0.4565,
+      "confusion_matrix": {
+        "TN": 792,
+        "FP": 266,
+        "FN": 295,
+        "TP": 647
+      },
+      "brier_score": 0.20697553456747125,
+      "log_loss": 0.6044418953530014,
+      "roc_auc": 0.733228079258626,
+      "average_precision": 0.6704425645491635
+    },
+    "test_pattern_only_selected": {
+      "n_valid": 2000,
+      "actual_yes_rate": 0.471,
+      "mean_probability_yes": 0.4714238887920398,
+      "threshold": 50.0,
+      "accuracy": 0.726,
+      "balanced_accuracy": 0.7265882428489439,
+      "precision": 0.6981891348088531,
+      "recall": 0.7367303609341825,
+      "specificity": 0.7164461247637051,
+      "f1": 0.7169421487603306,
+      "predicted_yes_rate": 0.497,
+      "confusion_matrix": {
+        "TN": 758,
+        "FP": 300,
+        "FN": 248,
+        "TP": 694
+      },
+      "brier_score": 0.19370669390716347,
+      "log_loss": 0.5737446960352585,
+      "roc_auc": 0.7657519896933284,
+      "average_precision": 0.6923347765452539
+    }
+  },
+  "usage_total": {
+    "input_tokens": 8044112,
+    "output_tokens": 510600,
+    "total_tokens": 8554712
+  },
+  "important_design_note": "The default test pass uses frozen memory only. Enable --run-test-without-memory for a direct same-test memory ablation.",
+  "files": {
+    "profiles": "/content/drive/MyDrive/Vaccination-Decision-Model/Results/hbm5_reflective_500/hbm5_selected_profiles.csv",
+    "pattern_base_rates": "/content/drive/MyDrive/Vaccination-Decision-Model/Results/hbm5_reflective_500/pattern_base_rates.csv",
+    "memory": "/content/drive/MyDrive/Vaccination-Decision-Model/Results/hbm5_reflective_500/memory_final.jsonl",
+    "train_predictions": "/content/drive/MyDrive/Vaccination-Decision-Model/Results/hbm5_reflective_500/train_predictions_no_memory.csv",
+    "calibration_predictions": "/content/drive/MyDrive/Vaccination-Decision-Model/Results/hbm5_reflective_500/calibration_predictions_with_memory.csv",
+    "test_predictions": "/content/drive/MyDrive/Vaccination-Decision-Model/Results/hbm5_reflective_500/test_predictions_with_memory.csv"
+  }
+}

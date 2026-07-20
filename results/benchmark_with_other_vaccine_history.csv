@@ -1,0 +1,5 @@
+model_family,method,variant,test_n,accuracy,roc_auc,f1,notes
+HBM/LLM,HBM5,pattern only,2000,0.726,0.7657519896933284,0.7169421487603306,Prior-vaccine behavior contributes to the vaccine-acceptance/benefit proxy.
+HBM/LLM,HBM5,LLM with reflective memory,2000,0.7195,0.733228079258626,0.6975741239892184,One residual decision call plus frozen reflective memory.
+ML,ML baseline,logistic,,0.7604,0.8398,0.7484,Reported baseline result; exact split metadata was not included in the supplied output.
+ML,ML baseline,xgboost,,0.7647,0.8452,0.7519,Reported baseline result; exact split metadata was not included in the supplied output.

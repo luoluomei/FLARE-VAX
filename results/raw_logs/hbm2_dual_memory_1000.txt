@@ -1,0 +1,610 @@
+==============================================================================
+FLARE-VAX HBM2 — Pattern Anchor + Balanced Dual Memory
+==============================================================================
+Version                    : hbm2_openai_colab_v4_pattern_anchor_dual_memory
+Model                      : gpt-4o-mini-2024-07-18
+Reflection model           : gpt-4o-mini-2024-07-18
+Data                       : /content/drive/MyDrive/Vaccination-Decision-Model/Data/nhis2024_hbm2_clean.csv
+Output                     : /content/drive/MyDrive/Vaccination-Decision-Model/Results/v4_gpt4omini_100_proportional
+Sample size                : 1000
+Class sampling             : proportional
+Class fraction             : 0.0
+Preserve pattern/class     : True
+Split ratios               : memory=0.5, calibration=0.25, test=0.25
+Prototype/reflection k     : 2/1
+Confidence thresholds      : prototype=65.0, reflection=65.0
+Assessment batch size      : 32
+Frozen CALL3 concurrency   : 12
+WARNING: The cleaned CSV may reflect overly broad 7/8/9 missing-code replacement:
+  - education has code 10 but no valid codes 7/8/9
+  - income_poverty_ratio has codes >=10 but no valid codes 7/8/9
+  - hispanic public-use group code 7 is absent
+  Quick API validation can proceed, but regenerate the clean data before final results.
+Rows available             : 32,073
+Selected rows              : 1000 (memory=500, calibration=250, test=250)
+Selected target rate       : 47.4%
+Memory vector dimensions   : 52
+Selected class counts:
+  class 0: n=526
+  class 1: n=474
+Pattern distribution by phase:
+  [memory]
+    P0 High threat / Low barrier     n=183 actual_vax=63.4%
+    P1 High threat / High barrier    n= 93 actual_vax=48.4%
+    P2 Low threat / Low barrier      n=113 actual_vax=38.1%
+    P3 Low threat / High barrier     n=111 actual_vax=29.7%
+  [calibration]
+    P0 High threat / Low barrier     n= 91 actual_vax=62.6%
+    P1 High threat / High barrier    n= 47 actual_vax=48.9%
+    P2 Low threat / Low barrier      n= 56 actual_vax=37.5%
+    P3 Low threat / High barrier     n= 56 actual_vax=30.4%
+  [test]
+    P0 High threat / Low barrier     n= 91 actual_vax=63.7%
+    P1 High threat / High barrier    n= 48 actual_vax=47.9%
+    P2 Low threat / Low barrier      n= 56 actual_vax=39.3%
+    P3 Low threat / High barrier     n= 55 actual_vax=29.1%
+Training-only pattern anchors (memory-build split):
+  P0: n=183, raw=63.4%, smoothed=62.6%
+  P1: n=93, raw=48.4%, smoothed=48.3%
+  P2: n=113, raw=38.1%, smoothed=38.8%
+  P3: n=111, raw=29.7%, smoothed=31.2%
+Precomputing CALL 1/2 for 1000 ALL respondents...
+ALL CALL1/2: 100% 1000/1000 [05:18<00:00,  3.14it/s]
+Sequential memory-build CALL3 resumes at 0/500; memory={'prototypes': 0, 'reflections': 0, 'total': 0}
+MEMORY CALL3 + selective reflection:   0% 0/500 [00:00<?, ?it/s]
+==============================================================================
+SAMPLE 0 | phase=memory | actual=YES | base=62.4% | adj=+10 | final=72.4%
+Pattern: P0 High threat / Low barrier
+Reason: The high threat from being elderly with chronic conditions suggests a stronger motivation to get vaccinated despite mild barriers.
+Memory mix: {'prototype_count': 0, 'reflection_count': 0}; sources=[]
+==============================================================================
+MEMORY CALL3 + selective reflection:   0% 1/500 [00:18<2:33:36, 18.47s/it]
+==============================================================================
+SAMPLE 1 | phase=memory | actual=YES | base=30.6% | adj=-10 | final=20.6%
+Pattern: P3 Low threat / High barrier
+Reason: High barriers related to cost and medical bills significantly reduce the likelihood of vaccination despite low threat factors.
+Memory mix: {'prototype_count': 0, 'reflection_count': 0}; sources=[]
+Reflection: {"error_cause": "The prediction failed due to an underestimation of the impact of high barriers despite low threat factors.", "missed_or_overweighted_signal": "The high barrier related to cost was overweighted, overshadowing the individual's actual willingness to vaccinate.", "correction_rule": "In cases with high barriers, adjust predictions to account for potential willingness to vaccinate despite low threat factors.", "applicable_pattern": "P3"}
+==============================================================================
+MEMORY CALL3 + selective reflection:   0% 2/500 [00:21<1:16:30,  9.22s/it]
+==============================================================================
+SAMPLE 2 | phase=memory | actual=YES | base=62.4% | adj=+10 | final=72.4%
+Pattern: P0 High threat / Low barrier
+Reason: The individual has high threat factors and no barriers, suggesting a strong likelihood of vaccination.
+Memory mix: {'prototype_count': 1, 'reflection_count': 0}; sources=[0]
+==============================================================================
+MEMORY CALL3 + selective reflection:   2% 10/500 [00:42<18:29,  2.26s/it]Memory checkpoint: 10/500; dual memory={'prototypes': 3, 'reflections': 3, 'total': 6}
+MEMORY CALL3 + selective reflection:   4% 20/500 [01:02<16:48,  2.10s/it]Memory checkpoint: 20/500; dual memory={'prototypes': 7, 'reflections': 6, 'total': 13}
+MEMORY CALL3 + selective reflection:   6% 30/500 [01:29<22:11,  2.83s/it]Memory checkpoint: 30/500; dual memory={'prototypes': 11, 'reflections': 10, 'total': 21}
+MEMORY CALL3 + selective reflection:   8% 40/500 [01:47<15:42,  2.05s/it]Memory checkpoint: 40/500; dual memory={'prototypes': 13, 'reflections': 12, 'total': 25}
+MEMORY CALL3 + selective reflection:  10% 50/500 [02:05<14:33,  1.94s/it]Memory checkpoint: 50/500; dual memory={'prototypes': 14, 'reflections': 14, 'total': 28}
+MEMORY CALL3 + selective reflection:  12% 60/500 [02:22<14:13,  1.94s/it]Memory checkpoint: 60/500; dual memory={'prototypes': 15, 'reflections': 16, 'total': 31}
+MEMORY CALL3 + selective reflection:  14% 70/500 [02:43<18:06,  2.53s/it]Memory checkpoint: 70/500; dual memory={'prototypes': 15, 'reflections': 16, 'total': 31}
+MEMORY CALL3 + selective reflection:  16% 80/500 [02:58<09:32,  1.36s/it]Memory checkpoint: 80/500; dual memory={'prototypes': 15, 'reflections': 16, 'total': 31}
+MEMORY CALL3 + selective reflection:  18% 90/500 [03:14<10:45,  1.57s/it]Memory checkpoint: 90/500; dual memory={'prototypes': 15, 'reflections': 16, 'total': 31}
+MEMORY CALL3 + selective reflection:  20% 100/500 [03:36<13:00,  1.95s/it]Memory checkpoint: 100/500; dual memory={'prototypes': 15, 'reflections': 16, 'total': 31}
+MEMORY CALL3 + selective reflection:  22% 110/500 [03:59<14:20,  2.21s/it]Memory checkpoint: 110/500; dual memory={'prototypes': 15, 'reflections': 16, 'total': 31}
+MEMORY CALL3 + selective reflection:  24% 120/500 [04:16<11:25,  1.80s/it]Memory checkpoint: 120/500; dual memory={'prototypes': 15, 'reflections': 16, 'total': 31}
+MEMORY CALL3 + selective reflection:  26% 130/500 [04:29<07:39,  1.24s/it]Memory checkpoint: 130/500; dual memory={'prototypes': 15, 'reflections': 16, 'total': 31}
+MEMORY CALL3 + selective reflection:  28% 140/500 [04:45<07:42,  1.28s/it]Memory checkpoint: 140/500; dual memory={'prototypes': 15, 'reflections': 16, 'total': 31}
+MEMORY CALL3 + selective reflection:  30% 150/500 [05:07<12:20,  2.12s/it]Memory checkpoint: 150/500; dual memory={'prototypes': 15, 'reflections': 16, 'total': 31}
+MEMORY CALL3 + selective reflection:  32% 160/500 [05:27<09:29,  1.67s/it]Memory checkpoint: 160/500; dual memory={'prototypes': 15, 'reflections': 16, 'total': 31}
+MEMORY CALL3 + selective reflection:  34% 170/500 [05:43<08:11,  1.49s/it]Memory checkpoint: 170/500; dual memory={'prototypes': 15, 'reflections': 16, 'total': 31}
+MEMORY CALL3 + selective reflection:  36% 180/500 [06:03<08:21,  1.57s/it]Memory checkpoint: 180/500; dual memory={'prototypes': 15, 'reflections': 16, 'total': 31}
+MEMORY CALL3 + selective reflection:  38% 190/500 [06:19<09:26,  1.83s/it]Memory checkpoint: 190/500; dual memory={'prototypes': 15, 'reflections': 16, 'total': 31}
+MEMORY CALL3 + selective reflection:  40% 200/500 [06:37<09:44,  1.95s/it]Memory checkpoint: 200/500; dual memory={'prototypes': 15, 'reflections': 16, 'total': 31}
+MEMORY CALL3 + selective reflection:  42% 210/500 [07:00<12:26,  2.57s/it]Memory checkpoint: 210/500; dual memory={'prototypes': 15, 'reflections': 16, 'total': 31}
+MEMORY CALL3 + selective reflection:  44% 220/500 [07:17<06:40,  1.43s/it]Memory checkpoint: 220/500; dual memory={'prototypes': 15, 'reflections': 16, 'total': 31}
+MEMORY CALL3 + selective reflection:  46% 230/500 [07:33<06:25,  1.43s/it]Memory checkpoint: 230/500; dual memory={'prototypes': 15, 'reflections': 16, 'total': 31}
+MEMORY CALL3 + selective reflection:  48% 240/500 [07:53<07:35,  1.75s/it]Memory checkpoint: 240/500; dual memory={'prototypes': 15, 'reflections': 16, 'total': 31}
+MEMORY CALL3 + selective reflection:  50% 250/500 [08:15<12:44,  3.06s/it]Memory checkpoint: 250/500; dual memory={'prototypes': 15, 'reflections': 16, 'total': 31}
+MEMORY CALL3 + selective reflection:  52% 260/500 [08:33<07:44,  1.93s/it]Memory checkpoint: 260/500; dual memory={'prototypes': 15, 'reflections': 16, 'total': 31}
+MEMORY CALL3 + selective reflection:  54% 270/500 [08:56<06:40,  1.74s/it]Memory checkpoint: 270/500; dual memory={'prototypes': 15, 'reflections': 16, 'total': 31}
+MEMORY CALL3 + selective reflection:  56% 280/500 [09:19<12:13,  3.33s/it]Memory checkpoint: 280/500; dual memory={'prototypes': 15, 'reflections': 16, 'total': 31}
+MEMORY CALL3 + selective reflection:  58% 290/500 [09:34<04:51,  1.39s/it]Memory checkpoint: 290/500; dual memory={'prototypes': 15, 'reflections': 16, 'total': 31}
+MEMORY CALL3 + selective reflection:  60% 300/500 [09:59<08:03,  2.42s/it]Memory checkpoint: 300/500; dual memory={'prototypes': 15, 'reflections': 16, 'total': 31}
+MEMORY CALL3 + selective reflection:  62% 310/500 [10:22<09:24,  2.97s/it]Memory checkpoint: 310/500; dual memory={'prototypes': 15, 'reflections': 16, 'total': 31}
+MEMORY CALL3 + selective reflection:  64% 320/500 [10:41<04:39,  1.55s/it]Memory checkpoint: 320/500; dual memory={'prototypes': 15, 'reflections': 16, 'total': 31}
+MEMORY CALL3 + selective reflection:  66% 330/500 [11:00<04:47,  1.69s/it]Memory checkpoint: 330/500; dual memory={'prototypes': 15, 'reflections': 16, 'total': 31}
+MEMORY CALL3 + selective reflection:  68% 340/500 [11:19<06:03,  2.27s/it]Memory checkpoint: 340/500; dual memory={'prototypes': 15, 'reflections': 16, 'total': 31}
+MEMORY CALL3 + selective reflection:  70% 350/500 [11:37<04:35,  1.83s/it]Memory checkpoint: 350/500; dual memory={'prototypes': 15, 'reflections': 16, 'total': 31}
+MEMORY CALL3 + selective reflection:  72% 360/500 [12:04<05:08,  2.21s/it]Memory checkpoint: 360/500; dual memory={'prototypes': 15, 'reflections': 16, 'total': 31}
+MEMORY CALL3 + selective reflection:  74% 370/500 [12:22<03:30,  1.62s/it]Memory checkpoint: 370/500; dual memory={'prototypes': 15, 'reflections': 16, 'total': 31}
+MEMORY CALL3 + selective reflection:  76% 380/500 [12:40<03:48,  1.91s/it]Memory checkpoint: 380/500; dual memory={'prototypes': 15, 'reflections': 16, 'total': 31}
+MEMORY CALL3 + selective reflection:  78% 390/500 [13:06<05:02,  2.75s/it]Memory checkpoint: 390/500; dual memory={'prototypes': 15, 'reflections': 16, 'total': 31}
+MEMORY CALL3 + selective reflection:  80% 400/500 [13:30<04:18,  2.58s/it]Memory checkpoint: 400/500; dual memory={'prototypes': 15, 'reflections': 16, 'total': 31}
+MEMORY CALL3 + selective reflection:  82% 410/500 [13:51<03:19,  2.21s/it]Memory checkpoint: 410/500; dual memory={'prototypes': 17, 'reflections': 17, 'total': 34}
+MEMORY CALL3 + selective reflection:  84% 420/500 [14:19<03:25,  2.57s/it]Memory checkpoint: 420/500; dual memory={'prototypes': 18, 'reflections': 18, 'total': 36}
+MEMORY CALL3 + selective reflection:  86% 430/500 [14:43<03:24,  2.92s/it]Memory checkpoint: 430/500; dual memory={'prototypes': 19, 'reflections': 18, 'total': 37}
+MEMORY CALL3 + selective reflection:  88% 440/500 [15:01<01:26,  1.45s/it]Memory checkpoint: 440/500; dual memory={'prototypes': 20, 'reflections': 20, 'total': 40}
+MEMORY CALL3 + selective reflection:  90% 450/500 [15:27<01:56,  2.33s/it]Memory checkpoint: 450/500; dual memory={'prototypes': 20, 'reflections': 20, 'total': 40}
+MEMORY CALL3 + selective reflection:  92% 460/500 [15:45<01:00,  1.51s/it]Memory checkpoint: 460/500; dual memory={'prototypes': 20, 'reflections': 20, 'total': 40}
+MEMORY CALL3 + selective reflection:  94% 470/500 [16:06<00:45,  1.50s/it]Memory checkpoint: 470/500; dual memory={'prototypes': 20, 'reflections': 20, 'total': 40}
+MEMORY CALL3 + selective reflection:  96% 480/500 [16:28<00:44,  2.23s/it]Memory checkpoint: 480/500; dual memory={'prototypes': 20, 'reflections': 20, 'total': 40}
+MEMORY CALL3 + selective reflection:  98% 490/500 [16:48<00:22,  2.21s/it]Memory checkpoint: 490/500; dual memory={'prototypes': 20, 'reflections': 20, 'total': 40}
+MEMORY CALL3 + selective reflection: 100% 500/500 [17:09<00:00,  1.55s/it]Memory checkpoint: 500/500; dual memory={'prototypes': 20, 'reflections': 20, 'total': 40}
+MEMORY CALL3 + selective reflection: 100% 500/500 [17:09<00:00,  2.06s/it]
+Frozen final dual memory: {'prototypes': 20, 'reflections': 20, 'total': 40}
+CALIBRATION CALL3 frozen memory: 100% 250/250 [00:53<00:00,  4.66it/s]
+
+INDEPENDENT CALIBRATION-SPLIT THRESHOLDS
+{
+  "final_probability": {
+    "probability_field": "probability_yes",
+    "threshold_metric": "balanced_accuracy",
+    "selected_threshold": 38,
+    "selected_metric_value": 0.633923985618901,
+    "calibration_metrics_at_50": {
+      "accuracy": 0.62,
+      "balanced_accuracy": 0.6127375449409348,
+      "precision": 0.6263736263736264,
+      "recall": 0.4830508474576271,
+      "specificity": 0.7424242424242424,
+      "f1": 0.5454545454545454,
+      "predicted_yes_rate": 0.364,
+      "confusion_matrix": {
+        "TN": 98,
+        "FP": 34,
+        "FN": 61,
+        "TP": 57
+      }
+    },
+    "calibration_metrics_selected": {
+      "accuracy": 0.64,
+      "balanced_accuracy": 0.633923985618901,
+      "precision": 0.6458333333333334,
+      "recall": 0.5254237288135594,
+      "specificity": 0.7424242424242424,
+      "f1": 0.5794392523364486,
+      "predicted_yes_rate": 0.384,
+      "confusion_matrix": {
+        "TN": 98,
+        "FP": 34,
+        "FN": 56,
+        "TP": 62
+      }
+    },
+    "fallback": false
+  },
+  "pattern_only": {
+    "probability_field": "base_probability",
+    "threshold_metric": "balanced_accuracy",
+    "selected_threshold": 48,
+    "selected_metric_value": 0.6192860811504879,
+    "calibration_metrics_at_50": {
+      "accuracy": 0.62,
+      "balanced_accuracy": 0.6127375449409348,
+      "precision": 0.6263736263736264,
+      "recall": 0.4830508474576271,
+      "specificity": 0.7424242424242424,
+      "f1": 0.5454545454545454,
+      "predicted_yes_rate": 0.364,
+      "confusion_matrix": {
+        "TN": 98,
+        "FP": 34,
+        "FN": 61,
+        "TP": 57
+      }
+    },
+    "calibration_metrics_selected": {
+      "accuracy": 0.616,
+      "balanced_accuracy": 0.6192860811504879,
+      "precision": 0.5797101449275363,
+      "recall": 0.6779661016949152,
+      "specificity": 0.5606060606060606,
+      "f1": 0.625,
+      "predicted_yes_rate": 0.552,
+      "confusion_matrix": {
+        "TN": 74,
+        "FP": 58,
+        "FN": 38,
+        "TP": 80
+      }
+    },
+    "fallback": false
+  }
+}
+TEST CALL3 frozen memory: 100% 250/250 [01:09<00:00,  3.59it/s]
+
+==============================================================================
+RUN SUMMARY
+==============================================================================
+{
+  "experiment": "flare_vax_hbm2_pattern_anchor_dual_memory",
+  "version": "hbm2_openai_colab_v4_pattern_anchor_dual_memory",
+  "created_at": "2026-07-17T06:26:04.805429+00:00",
+  "run_config": {
+    "version": "hbm2_openai_colab_v4_pattern_anchor_dual_memory",
+    "model": "gpt-4o-mini-2024-07-18",
+    "reflection_model": "gpt-4o-mini-2024-07-18",
+    "data_path": "/content/drive/MyDrive/Vaccination-Decision-Model/Data/nhis2024_hbm2_clean.csv",
+    "data_size_bytes": 14008143,
+    "sample_size": 1000,
+    "class_sampling": "proportional",
+    "positive_fraction": 0.5,
+    "class_fraction": 0.0,
+    "preserve_pattern_within_class": true,
+    "memory_ratio": 0.5,
+    "calibration_ratio": 0.25,
+    "test_ratio": 0.25,
+    "random_seed": 42,
+    "joint_stratify": true,
+    "base_rate_prior_strength": 10.0,
+    "prototype_k": 2,
+    "reflection_k": 1,
+    "max_prototypes_per_bucket": 5,
+    "max_reflections_per_bucket": 5,
+    "memory_min_similarity": 0.35,
+    "prototype_confidence_threshold": 65.0,
+    "reflection_confidence_threshold": 65.0,
+    "memory_features": [
+      "num__age",
+      "num__health_status",
+      "num__chronic_or_risk_count",
+      "num__hbm_threat_score",
+      "num__hbm_barrier_count",
+      "num__hbm_barrier_score",
+      "num__retail_clinic_visits_12m",
+      "cat__uninsured_yes_0.0",
+      "cat__uninsured_yes_1.0",
+      "cat__medicare_yes_0.0",
+      "cat__medicare_yes_1.0",
+      "cat__medicaid_yes_1.0",
+      "cat__private_insurance_yes_1.0",
+      "cat__usual_care_place_1.0",
+      "cat__usual_care_place_2.0",
+      "cat__usual_care_place_3.0",
+      "cat__last_doctor_visit_0.0",
+      "cat__last_doctor_visit_1.0",
+      "cat__last_doctor_visit_2.0",
+      "cat__last_doctor_visit_3.0",
+      "cat__last_doctor_visit_4.0",
+      "cat__last_doctor_visit_5.0",
+      "cat__last_doctor_visit_6.0",
+      "cat__used_internet_test_results_yes_0.0",
+      "cat__used_internet_test_results_yes_1.0",
+      "cat__used_internet_communicate_doctor_yes_0.0",
+      "cat__used_internet_communicate_doctor_yes_1.0",
+      "cat__education_1.0",
+      "cat__education_2.0",
+      "cat__education_3.0",
+      "cat__education_4.0",
+      "cat__education_5.0",
+      "cat__education_6.0",
+      "cat__education_10.0",
+      "cat__income_poverty_ratio_1.0",
+      "cat__income_poverty_ratio_2.0",
+      "cat__income_poverty_ratio_3.0",
+      "cat__income_poverty_ratio_4.0",
+      "cat__income_poverty_ratio_5.0",
+      "cat__income_poverty_ratio_6.0",
+      "cat__income_poverty_ratio_10.0",
+      "cat__income_poverty_ratio_11.0",
+      "cat__income_poverty_ratio_12.0",
+      "cat__income_poverty_ratio_13.0",
+      "cat__income_poverty_ratio_14.0",
+      "cat__time_since_wellness_visit_0.0",
+      "cat__time_since_wellness_visit_1.0",
+      "cat__time_since_wellness_visit_2.0",
+      "cat__time_since_wellness_visit_3.0",
+      "cat__time_since_wellness_visit_4.0",
+      "cat__time_since_wellness_visit_5.0",
+      "cat__time_since_wellness_visit_6.0"
+    ],
+    "include_sensitive_context": true,
+    "assessment_max_tokens": 140,
+    "decision_max_tokens": 100,
+    "reflection_max_tokens": 220,
+    "temperature": 0.0,
+    "max_concurrent_requests": 20,
+    "assessment_batch_size": 32,
+    "frozen_concurrent_samples": 12,
+    "threshold_metric": "balanced_accuracy",
+    "pipeline": {
+      "call12": "all selected respondents precomputed concurrently",
+      "memory_call3": "strictly sequential",
+      "memory_update": "high-confidence prototypes and high-confidence error reflections only",
+      "probability": "memory-build pattern base rate plus bounded [-20,+20] LLM adjustment",
+      "calibration_call3": "concurrent with frozen final dual memory",
+      "threshold_selection": "calibration split only",
+      "test_call3": "concurrent with same frozen memory and frozen threshold",
+      "test_memory_update": false
+    },
+    "fingerprint": "8dd93cab7528314fad5d5ebef75c730e86391de95c59f582c322bbf479e48a63"
+  },
+  "pattern_base_rates": {
+    "0": {
+      "n": 183,
+      "yes": 116,
+      "raw_rate": 0.6338797814207651,
+      "smoothed_rate": 0.6255958549222798
+    },
+    "1": {
+      "n": 93,
+      "yes": 45,
+      "raw_rate": 0.4838709677419355,
+      "smoothed_rate": 0.4829126213592233
+    },
+    "2": {
+      "n": 113,
+      "yes": 43,
+      "raw_rate": 0.3805309734513274,
+      "smoothed_rate": 0.388130081300813
+    },
+    "3": {
+      "n": 111,
+      "yes": 33,
+      "raw_rate": 0.2972972972972973,
+      "smoothed_rate": 0.31190082644628103
+    }
+  },
+  "memory_final_sizes": {
+    "prototypes": 20,
+    "reflections": 20,
+    "total": 40
+  },
+  "calibration": {
+    "final_probability": {
+      "probability_field": "probability_yes",
+      "threshold_metric": "balanced_accuracy",
+      "selected_threshold": 38,
+      "selected_metric_value": 0.633923985618901,
+      "calibration_metrics_at_50": {
+        "accuracy": 0.62,
+        "balanced_accuracy": 0.6127375449409348,
+        "precision": 0.6263736263736264,
+        "recall": 0.4830508474576271,
+        "specificity": 0.7424242424242424,
+        "f1": 0.5454545454545454,
+        "predicted_yes_rate": 0.364,
+        "confusion_matrix": {
+          "TN": 98,
+          "FP": 34,
+          "FN": 61,
+          "TP": 57
+        }
+      },
+      "calibration_metrics_selected": {
+        "accuracy": 0.64,
+        "balanced_accuracy": 0.633923985618901,
+        "precision": 0.6458333333333334,
+        "recall": 0.5254237288135594,
+        "specificity": 0.7424242424242424,
+        "f1": 0.5794392523364486,
+        "predicted_yes_rate": 0.384,
+        "confusion_matrix": {
+          "TN": 98,
+          "FP": 34,
+          "FN": 56,
+          "TP": 62
+        }
+      },
+      "fallback": false
+    },
+    "pattern_only": {
+      "probability_field": "base_probability",
+      "threshold_metric": "balanced_accuracy",
+      "selected_threshold": 48,
+      "selected_metric_value": 0.6192860811504879,
+      "calibration_metrics_at_50": {
+        "accuracy": 0.62,
+        "balanced_accuracy": 0.6127375449409348,
+        "precision": 0.6263736263736264,
+        "recall": 0.4830508474576271,
+        "specificity": 0.7424242424242424,
+        "f1": 0.5454545454545454,
+        "predicted_yes_rate": 0.364,
+        "confusion_matrix": {
+          "TN": 98,
+          "FP": 34,
+          "FN": 61,
+          "TP": 57
+        }
+      },
+      "calibration_metrics_selected": {
+        "accuracy": 0.616,
+        "balanced_accuracy": 0.6192860811504879,
+        "precision": 0.5797101449275363,
+        "recall": 0.6779661016949152,
+        "specificity": 0.5606060606060606,
+        "f1": 0.625,
+        "predicted_yes_rate": 0.552,
+        "confusion_matrix": {
+          "TN": 74,
+          "FP": 58,
+          "FN": 38,
+          "TP": 80
+        }
+      },
+      "fallback": false
+    }
+  },
+  "metrics": {
+    "memory_final_at_50": {
+      "n_valid": 500,
+      "actual_yes_rate": 0.474,
+      "mean_probability_yes": 0.45227606000000004,
+      "threshold": 50.0,
+      "accuracy": 0.63,
+      "balanced_accuracy": 0.6305610370441674,
+      "precision": 0.6031746031746031,
+      "recall": 0.6413502109704642,
+      "specificity": 0.6197718631178707,
+      "f1": 0.621676891615542,
+      "predicted_yes_rate": 0.504,
+      "confusion_matrix": {
+        "TN": 163,
+        "FP": 100,
+        "FN": 85,
+        "TP": 152
+      },
+      "brier_score": 0.23758824514499996,
+      "log_loss": 0.674209840274231,
+      "roc_auc": 0.5809308369832026,
+      "average_precision": 0.601918488381856
+    },
+    "calibration_final_at_50": {
+      "n_valid": 250,
+      "actual_yes_rate": 0.472,
+      "mean_probability_yes": 0.4139122,
+      "threshold": 50.0,
+      "accuracy": 0.62,
+      "balanced_accuracy": 0.6127375449409348,
+      "precision": 0.6263736263736264,
+      "recall": 0.4830508474576271,
+      "specificity": 0.7424242424242424,
+      "f1": 0.5454545454545454,
+      "predicted_yes_rate": 0.364,
+      "confusion_matrix": {
+        "TN": 98,
+        "FP": 34,
+        "FN": 61,
+        "TP": 57
+      },
+      "brier_score": 0.2408215493884,
+      "log_loss": 0.6799898784730087,
+      "roc_auc": 0.6601181304571135,
+      "average_precision": 0.596151391966021
+    },
+    "calibration_final_selected": {
+      "n_valid": 250,
+      "actual_yes_rate": 0.472,
+      "mean_probability_yes": 0.4139122,
+      "threshold": 38.0,
+      "accuracy": 0.64,
+      "balanced_accuracy": 0.633923985618901,
+      "precision": 0.6458333333333334,
+      "recall": 0.5254237288135594,
+      "specificity": 0.7424242424242424,
+      "f1": 0.5794392523364486,
+      "predicted_yes_rate": 0.384,
+      "confusion_matrix": {
+        "TN": 98,
+        "FP": 34,
+        "FN": 56,
+        "TP": 62
+      },
+      "brier_score": 0.2408215493884,
+      "log_loss": 0.6799898784730087,
+      "roc_auc": 0.6601181304571135,
+      "average_precision": 0.596151391966021
+    },
+    "test_final_at_50": {
+      "n_valid": 250,
+      "actual_yes_rate": 0.476,
+      "mean_probability_yes": 0.41479624000000004,
+      "threshold": 50.0,
+      "accuracy": 0.624,
+      "balanced_accuracy": 0.6177432805183142,
+      "precision": 0.6373626373626373,
+      "recall": 0.48739495798319327,
+      "specificity": 0.7480916030534351,
+      "f1": 0.5523809523809524,
+      "predicted_yes_rate": 0.364,
+      "confusion_matrix": {
+        "TN": 98,
+        "FP": 33,
+        "FN": 61,
+        "TP": 58
+      },
+      "brier_score": 0.23801527522080002,
+      "log_loss": 0.6733281907280703,
+      "roc_auc": 0.6633202899480404,
+      "average_precision": 0.6112968119735196
+    },
+    "test_final_selected": {
+      "n_valid": 250,
+      "actual_yes_rate": 0.476,
+      "mean_probability_yes": 0.41479624000000004,
+      "threshold": 38.0,
+      "accuracy": 0.624,
+      "balanced_accuracy": 0.6185130540765924,
+      "precision": 0.631578947368421,
+      "recall": 0.5042016806722689,
+      "specificity": 0.732824427480916,
+      "f1": 0.5607476635514018,
+      "predicted_yes_rate": 0.38,
+      "confusion_matrix": {
+        "TN": 96,
+        "FP": 35,
+        "FN": 59,
+        "TP": 60
+      },
+      "brier_score": 0.23801527522080002,
+      "log_loss": 0.6733281907280703,
+      "roc_auc": 0.6633202899480404,
+      "average_precision": 0.6112968119735196
+    },
+    "test_pattern_only_at_50": {
+      "n_valid": 250,
+      "actual_yes_rate": 0.476,
+      "mean_probability_yes": 0.47599624000000007,
+      "threshold": 50.0,
+      "accuracy": 0.624,
+      "balanced_accuracy": 0.6177432805183142,
+      "precision": 0.6373626373626373,
+      "recall": 0.48739495798319327,
+      "specificity": 0.7480916030534351,
+      "f1": 0.5523809523809524,
+      "predicted_yes_rate": 0.364,
+      "confusion_matrix": {
+        "TN": 98,
+        "FP": 33,
+        "FN": 61,
+        "TP": 58
+      },
+      "brier_score": 0.23101391922079997,
+      "log_loss": 0.6543952677032384,
+      "roc_auc": 0.6511963564051575,
+      "average_precision": 0.5849279284486346
+    },
+    "test_pattern_only_selected": {
+      "n_valid": 250,
+      "actual_yes_rate": 0.476,
+      "mean_probability_yes": 0.47599624000000007,
+      "threshold": 48.0,
+      "accuracy": 0.616,
+      "balanced_accuracy": 0.6189620886522549,
+      "precision": 0.5827338129496403,
+      "recall": 0.680672268907563,
+      "specificity": 0.5572519083969466,
+      "f1": 0.627906976744186,
+      "predicted_yes_rate": 0.556,
+      "confusion_matrix": {
+        "TN": 73,
+        "FP": 58,
+        "FN": 38,
+        "TP": 81
+      },
+      "brier_score": 0.23101391922079997,
+      "log_loss": 0.6543952677032384,
+      "roc_auc": 0.6511963564051575,
+      "average_precision": 0.5849279284486346
+    }
+  },
+  "usage_total": {
+    "input_tokens": 2113654,
+    "output_tokens": 104061,
+    "total_tokens": 2217715
+  },
+  "n_assessments_completed": 1000,
+  "n_memory_decisions": 500,
+  "n_calibration_decisions": 250,
+  "n_test_decisions": 250,
+  "files": {
+    "assessment_log": "/content/drive/MyDrive/Vaccination-Decision-Model/Results/v4_gpt4omini_100_proportional/logs/assessment_log.jsonl",
+    "memory_decision_log": "/content/drive/MyDrive/Vaccination-Decision-Model/Results/v4_gpt4omini_100_proportional/logs/memory_decisions.jsonl",
+    "calibration_decision_log": "/content/drive/MyDrive/Vaccination-Decision-Model/Results/v4_gpt4omini_100_proportional/logs/calibration_decisions.jsonl",
+    "test_decision_log": "/content/drive/MyDrive/Vaccination-Decision-Model/Results/v4_gpt4omini_100_proportional/logs/test_decisions.jsonl",
+    "prototype_memory_log": "/content/drive/MyDrive/Vaccination-Decision-Model/Results/v4_gpt4omini_100_proportional/logs/prototype_memory.jsonl",
+    "reflection_memory_log": "/content/drive/MyDrive/Vaccination-Decision-Model/Results/v4_gpt4omini_100_proportional/logs/reflection_memory.jsonl",
+    "predictions": "/content/drive/MyDrive/Vaccination-Decision-Model/Results/v4_gpt4omini_100_proportional/predictions.csv",
+    "pattern_metrics": "/content/drive/MyDrive/Vaccination-Decision-Model/Results/v4_gpt4omini_100_proportional/pattern_metrics.csv",
+    "sampling_manifest": "/content/drive/MyDrive/Vaccination-Decision-Model/Results/v4_gpt4omini_100_proportional/sampling_manifest.csv"
+  }
+}
+
+Sampling manifest : /content/drive/MyDrive/Vaccination-Decision-Model/Results/v4_gpt4omini_100_proportional/sampling_manifest.csv
+Predictions       : /content/drive/MyDrive/Vaccination-Decision-Model/Results/v4_gpt4omini_100_proportional/predictions.csv
+Pattern metrics   : /content/drive/MyDrive/Vaccination-Decision-Model/Results/v4_gpt4omini_100_proportional/pattern_metrics.csv
+Summary           : /content/drive/MyDrive/Vaccination-Decision-Model/Results/v4_gpt4omini_100_proportional/summary.json

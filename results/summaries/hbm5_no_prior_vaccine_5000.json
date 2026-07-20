@@ -1,0 +1,73 @@
+{
+  "source": "transcribed from the supplied run summary",
+  "version": "flare_vax_no_prior_vax_cot_memory_v1",
+  "n_selected": 5000,
+  "split_sizes": {
+    "memory": 2000,
+    "calibration": 1000,
+    "test": 2000
+  },
+  "thresholds": {
+    "motivation": 2.675,
+    "capability": 4.575,
+    "activation": 3.4750000000000005
+  },
+  "final_memory_items": 6,
+  "selected_llm_threshold": 52.0,
+  "selected_pattern_threshold": 42.0,
+  "metrics": {
+    "test_hbm8_pattern_only": {
+      "n": 2000,
+      "threshold": 42.0,
+      "accuracy": 0.6255,
+      "balanced_accuracy": 0.6326034832,
+      "precision": 0.5789473684,
+      "recall": 0.7666314678,
+      "specificity": 0.4985754986,
+      "f1": 0.6597001363,
+      "brier": 0.2241358773,
+      "log_loss": 0.6388801195,
+      "roc_auc": 0.6812456189,
+      "average_precision": 0.6118902623
+    },
+    "test_llm_with_memory": {
+      "n": 2000,
+      "threshold": 52.0,
+      "accuracy": 0.5705,
+      "balanced_accuracy": 0.5653305134,
+      "precision": 0.5551378446,
+      "recall": 0.4677930306,
+      "specificity": 0.6628679962,
+      "f1": 0.5077363897,
+      "brier": 0.2462925302,
+      "log_loss": 0.6861010426,
+      "roc_auc": 0.5807764009,
+      "average_precision": 0.5175930332
+    },
+    "test_llm_without_memory": {
+      "n": 2000,
+      "threshold": 52.0,
+      "accuracy": 0.6135,
+      "balanced_accuracy": 0.6161582886,
+      "precision": 0.5799632353,
+      "recall": 0.6663146779,
+      "specificity": 0.5660018993,
+      "f1": 0.6201474201,
+      "brier": 0.2321878106,
+      "log_loss": 0.6565252911,
+      "roc_auc": 0.6583758778,
+      "average_precision": 0.5882656476
+    }
+  },
+  "excluded_vaccine_columns": [
+    "SHINGRIX3_A",
+    "SHTCVD191_A",
+    "SHTCVD19NM2_A",
+    "SHTFLUM_A",
+    "SHTFLUY_A",
+    "SHTHEPA_A",
+    "SHTPNEUNB_A",
+    "SHTPNUEV_A",
+    "SHTSHINGL1_A"
+  ]
+}

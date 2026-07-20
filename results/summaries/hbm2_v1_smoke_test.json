@@ -1,0 +1,18 @@
+{
+  "source": "transcribed from the supplied console output",
+  "version": "hbm2_openai_colab_v1",
+  "experiment": "flare_vax_hbm2_three_call",
+  "sample_size": 20,
+  "train_size": 14,
+  "test_size": 6,
+  "balanced_sample": true,
+  "test_metrics": {
+    "accuracy": 0.6666666667,
+    "balanced_accuracy": 0.6666666667,
+    "precision": 1.0,
+    "recall": 0.3333333333,
+    "specificity": 1.0,
+    "f1": 0.5
+  },
+  "note": "Smoke test only; the six-person test set is not used for substantive comparison."
+}

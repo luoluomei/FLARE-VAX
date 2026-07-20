@@ -1,0 +1,423 @@
+==============================================================================
+FLARE-VAX HBM2 — Reflection Memory + Probability Calibration
+==============================================================================
+Version                  : hbm2_openai_colab_v3_reflection_calibrated
+Model                    : gpt-4o-mini-2024-07-18
+Reflection model         : gpt-4o-mini-2024-07-18
+Data                     : /content/drive/MyDrive/Vaccination-Decision-Model/Data/nhis2024_hbm2_clean.csv
+Output                   : /content/drive/MyDrive/Vaccination-Decision-Model/Results/gpt4o_reflection_500_natural
+Sample size              : 1000
+Train ratio              : 0.7
+Balanced sample          : False
+Joint stratify           : True
+Memory k                 : 3
+Pattern prior            : theory
+Assessment batch size    : 32
+Test concurrent samples  : 12
+Max concurrent requests  : 20
+Threshold metric         : balanced_accuracy
+WARNING: The cleaned CSV may reflect overly broad 7/8/9 missing-code replacement:
+  - education has code 10 but no valid codes 7/8/9
+  - income_poverty_ratio has codes >=10 but no valid codes 7/8/9
+  - hispanic public-use group code 7 is absent
+  Quick API validation can proceed, but regenerate the clean data before final results.
+Rows available           : 32,073
+Selected rows            : 1000 (train=700, test=300)
+Selected target rate     : 47.4%
+Memory vector dimensions : 65
+Pattern distribution:
+  P0 High threat / Low barrier     n= 354 actual_vax=67.8%
+  P1 High threat / High barrier    n= 183 actual_vax=44.3%
+  P2 Low threat / Low barrier      n= 233 actual_vax=40.8%
+  P3 Low threat / High barrier     n= 230 actual_vax=25.2%
+Precomputing CALL 1/2 for 688 TRAIN respondents...
+TRAIN CALL1/2: 100% 688/688 [02:09<00:00,  5.33it/s]
+Sequential TRAIN CALL3 resumes at 0/700; memory=0
+TRAIN CALL3 + reflection:   0% 0/700 [00:00<?, ?it/s]
+==============================================================================
+SAMPLE 0 | phase=train | actual=YES | p(YES)=85% | at50=YES
+Pattern: P0 High threat / Low barrier
+Reason: High risk factors and low barriers strongly indicate a likelihood of vaccination.
+Memory used: []
+==============================================================================
+TRAIN CALL3 + reflection:   0% 1/700 [00:00<09:22,  1.24it/s]
+==============================================================================
+SAMPLE 1 | phase=train | actual=YES | p(YES)=85% | at50=YES
+Pattern: P0 High threat / Low barrier
+Reason: High threat due to age and health, combined with low barriers, strongly favors vaccination likelihood.
+Memory used: []
+==============================================================================
+TRAIN CALL3 + reflection:   0% 2/700 [00:01<10:51,  1.07it/s]
+==============================================================================
+SAMPLE 2 | phase=train | actual=YES | p(YES)=80% | at50=YES
+Pattern: P0 High threat / Low barrier
+Reason: High threat from chronic conditions and low barriers suggest strong motivation for vaccination.
+Memory used: []
+==============================================================================
+TRAIN CALL3 + reflection:   1% 9/700 [00:10<12:36,  1.09s/it]TRAIN checkpoint: 10/700; reflected memory=1
+TRAIN CALL3 + reflection:   3% 19/700 [00:29<21:09,  1.86s/it]TRAIN checkpoint: 20/700; reflected memory=5
+TRAIN CALL3 + reflection:   4% 29/700 [00:45<19:34,  1.75s/it]TRAIN checkpoint: 30/700; reflected memory=9
+TRAIN CALL3 + reflection:   6% 39/700 [00:59<19:15,  1.75s/it]TRAIN checkpoint: 40/700; reflected memory=12
+TRAIN CALL3 + reflection:   7% 49/700 [01:24<18:26,  1.70s/it]TRAIN checkpoint: 50/700; reflected memory=13
+TRAIN CALL3 + reflection:   8% 59/700 [01:38<14:29,  1.36s/it]TRAIN checkpoint: 60/700; reflected memory=17
+TRAIN CALL3 + reflection:  10% 69/700 [01:59<25:17,  2.40s/it]TRAIN checkpoint: 70/700; reflected memory=22
+TRAIN CALL3 + reflection:  11% 79/700 [02:11<12:23,  1.20s/it]TRAIN checkpoint: 80/700; reflected memory=23
+TRAIN CALL3 + reflection:  13% 89/700 [02:30<17:55,  1.76s/it]TRAIN checkpoint: 90/700; reflected memory=28
+TRAIN CALL3 + reflection:  14% 99/700 [02:55<24:15,  2.42s/it]TRAIN checkpoint: 100/700; reflected memory=36
+TRAIN CALL3 + reflection:  16% 109/700 [03:17<16:56,  1.72s/it]TRAIN checkpoint: 110/700; reflected memory=42
+TRAIN CALL3 + reflection:  17% 119/700 [03:37<23:46,  2.46s/it]TRAIN checkpoint: 120/700; reflected memory=47
+TRAIN CALL3 + reflection:  18% 129/700 [03:55<13:10,  1.39s/it]TRAIN checkpoint: 130/700; reflected memory=49
+TRAIN CALL3 + reflection:  20% 139/700 [04:19<18:43,  2.00s/it]TRAIN checkpoint: 140/700; reflected memory=54
+TRAIN CALL3 + reflection:  21% 149/700 [04:41<20:46,  2.26s/it]TRAIN checkpoint: 150/700; reflected memory=59
+TRAIN CALL3 + reflection:  23% 159/700 [04:57<15:17,  1.70s/it]TRAIN checkpoint: 160/700; reflected memory=62
+TRAIN CALL3 + reflection:  24% 169/700 [05:13<17:41,  2.00s/it]TRAIN checkpoint: 170/700; reflected memory=65
+TRAIN CALL3 + reflection:  26% 179/700 [05:34<16:05,  1.85s/it]TRAIN checkpoint: 180/700; reflected memory=68
+TRAIN CALL3 + reflection:  27% 189/700 [05:55<16:51,  1.98s/it]TRAIN checkpoint: 190/700; reflected memory=74
+TRAIN CALL3 + reflection:  28% 199/700 [06:19<19:30,  2.34s/it]TRAIN checkpoint: 200/700; reflected memory=81
+TRAIN CALL3 + reflection:  30% 209/700 [06:41<18:43,  2.29s/it]TRAIN checkpoint: 210/700; reflected memory=88
+TRAIN CALL3 + reflection:  31% 219/700 [06:57<09:23,  1.17s/it]TRAIN checkpoint: 220/700; reflected memory=90
+TRAIN CALL3 + reflection:  33% 229/700 [07:17<16:27,  2.10s/it]TRAIN checkpoint: 230/700; reflected memory=95
+TRAIN CALL3 + reflection:  34% 239/700 [07:40<19:19,  2.52s/it]TRAIN checkpoint: 240/700; reflected memory=104
+TRAIN CALL3 + reflection:  36% 249/700 [08:00<12:44,  1.70s/it]TRAIN checkpoint: 250/700; reflected memory=106
+TRAIN CALL3 + reflection:  37% 259/700 [08:14<09:32,  1.30s/it]TRAIN checkpoint: 260/700; reflected memory=109
+TRAIN CALL3 + reflection:  38% 269/700 [08:35<18:42,  2.61s/it]TRAIN checkpoint: 270/700; reflected memory=114
+TRAIN CALL3 + reflection:  40% 279/700 [08:52<11:03,  1.58s/it]TRAIN checkpoint: 280/700; reflected memory=116
+TRAIN CALL3 + reflection:  41% 289/700 [09:06<10:54,  1.59s/it]TRAIN checkpoint: 290/700; reflected memory=118
+TRAIN CALL3 + reflection:  43% 299/700 [09:19<08:59,  1.34s/it]TRAIN checkpoint: 300/700; reflected memory=121
+TRAIN CALL3 + reflection:  44% 309/700 [09:43<17:30,  2.69s/it]TRAIN checkpoint: 310/700; reflected memory=126
+TRAIN CALL3 + reflection:  46% 319/700 [10:08<17:54,  2.82s/it]TRAIN checkpoint: 320/700; reflected memory=134
+TRAIN CALL3 + reflection:  47% 329/700 [10:26<08:42,  1.41s/it]TRAIN checkpoint: 330/700; reflected memory=138
+TRAIN CALL3 + reflection:  48% 339/700 [10:57<17:43,  2.95s/it]TRAIN checkpoint: 340/700; reflected memory=146
+TRAIN CALL3 + reflection:  50% 349/700 [11:20<15:30,  2.65s/it]TRAIN checkpoint: 350/700; reflected memory=153
+TRAIN CALL3 + reflection:  51% 359/700 [11:38<10:23,  1.83s/it]TRAIN checkpoint: 360/700; reflected memory=157
+TRAIN CALL3 + reflection:  53% 369/700 [12:04<15:21,  2.78s/it]TRAIN checkpoint: 370/700; reflected memory=165
+TRAIN CALL3 + reflection:  54% 379/700 [12:23<09:47,  1.83s/it]TRAIN checkpoint: 380/700; reflected memory=168
+TRAIN CALL3 + reflection:  56% 389/700 [12:40<10:26,  2.02s/it]TRAIN checkpoint: 390/700; reflected memory=171
+TRAIN CALL3 + reflection:  57% 399/700 [12:57<09:17,  1.85s/it]TRAIN checkpoint: 400/700; reflected memory=175
+TRAIN CALL3 + reflection:  58% 409/700 [13:23<10:42,  2.21s/it]TRAIN checkpoint: 410/700; reflected memory=180
+TRAIN CALL3 + reflection:  60% 419/700 [13:40<09:14,  1.97s/it]TRAIN checkpoint: 420/700; reflected memory=183
+TRAIN CALL3 + reflection:  61% 429/700 [14:00<09:18,  2.06s/it]TRAIN checkpoint: 430/700; reflected memory=190
+TRAIN CALL3 + reflection:  63% 439/700 [14:14<06:30,  1.50s/it]TRAIN checkpoint: 440/700; reflected memory=190
+TRAIN CALL3 + reflection:  64% 449/700 [14:33<06:31,  1.56s/it]TRAIN checkpoint: 450/700; reflected memory=195
+TRAIN CALL3 + reflection:  66% 459/700 [14:48<04:41,  1.17s/it]TRAIN checkpoint: 460/700; reflected memory=196
+TRAIN CALL3 + reflection:  67% 469/700 [15:09<09:34,  2.49s/it]TRAIN checkpoint: 470/700; reflected memory=202
+TRAIN CALL3 + reflection:  68% 479/700 [15:28<07:12,  1.96s/it]TRAIN checkpoint: 480/700; reflected memory=208
+TRAIN CALL3 + reflection:  70% 489/700 [15:53<07:55,  2.25s/it]TRAIN checkpoint: 490/700; reflected memory=214
+TRAIN CALL3 + reflection:  71% 499/700 [16:08<06:03,  1.81s/it]TRAIN checkpoint: 500/700; reflected memory=219
+TRAIN CALL3 + reflection:  73% 509/700 [16:29<06:21,  2.00s/it]TRAIN checkpoint: 510/700; reflected memory=225
+TRAIN CALL3 + reflection:  74% 519/700 [16:56<08:52,  2.94s/it]TRAIN checkpoint: 520/700; reflected memory=231
+TRAIN CALL3 + reflection:  76% 529/700 [17:13<04:36,  1.62s/it]TRAIN checkpoint: 530/700; reflected memory=236
+TRAIN CALL3 + reflection:  77% 539/700 [17:29<03:59,  1.49s/it]TRAIN checkpoint: 540/700; reflected memory=239
+TRAIN CALL3 + reflection:  78% 549/700 [17:42<03:02,  1.21s/it]TRAIN checkpoint: 550/700; reflected memory=241
+TRAIN CALL3 + reflection:  80% 559/700 [17:55<04:00,  1.70s/it]TRAIN checkpoint: 560/700; reflected memory=243
+TRAIN CALL3 + reflection:  81% 569/700 [18:11<03:25,  1.57s/it]TRAIN checkpoint: 570/700; reflected memory=246
+TRAIN CALL3 + reflection:  83% 579/700 [18:29<04:11,  2.08s/it]TRAIN checkpoint: 580/700; reflected memory=250
+TRAIN CALL3 + reflection:  84% 589/700 [18:49<04:16,  2.31s/it]TRAIN checkpoint: 590/700; reflected memory=254
+TRAIN CALL3 + reflection:  86% 599/700 [19:23<05:21,  3.18s/it]TRAIN checkpoint: 600/700; reflected memory=259
+TRAIN CALL3 + reflection:  87% 609/700 [19:45<04:02,  2.67s/it]TRAIN checkpoint: 610/700; reflected memory=263
+TRAIN CALL3 + reflection:  88% 619/700 [20:06<03:34,  2.65s/it]TRAIN checkpoint: 620/700; reflected memory=269
+TRAIN CALL3 + reflection:  90% 629/700 [20:26<02:44,  2.31s/it]TRAIN checkpoint: 630/700; reflected memory=274
+TRAIN CALL3 + reflection:  91% 639/700 [20:40<01:49,  1.79s/it]TRAIN checkpoint: 640/700; reflected memory=275
+TRAIN CALL3 + reflection:  93% 649/700 [21:01<01:55,  2.27s/it]TRAIN checkpoint: 650/700; reflected memory=284
+TRAIN CALL3 + reflection:  94% 659/700 [21:22<01:30,  2.20s/it]TRAIN checkpoint: 660/700; reflected memory=289
+TRAIN CALL3 + reflection:  96% 669/700 [21:39<01:07,  2.18s/it]TRAIN checkpoint: 670/700; reflected memory=295
+TRAIN CALL3 + reflection:  97% 679/700 [22:03<01:10,  3.35s/it]TRAIN checkpoint: 680/700; reflected memory=299
+TRAIN CALL3 + reflection:  98% 689/700 [22:26<00:21,  1.97s/it]TRAIN checkpoint: 690/700; reflected memory=306
+TRAIN CALL3 + reflection: 100% 699/700 [22:44<00:01,  1.70s/it]TRAIN checkpoint: 700/700; reflected memory=308
+TRAIN CALL3 + reflection: 100% 700/700 [22:44<00:00,  1.95s/it]
+
+TRAIN-ONLY THRESHOLD CALIBRATION
+{
+  "threshold_metric": "balanced_accuracy",
+  "selected_threshold": 45,
+  "selected_metric_value": 0.5663141697223677,
+  "train_metrics_at_50": {
+    "accuracy": 0.56,
+    "balanced_accuracy": 0.5513194080670508,
+    "precision": 0.5521739130434783,
+    "recall": 0.3825301204819277,
+    "specificity": 0.720108695652174,
+    "f1": 0.45195729537366547,
+    "predicted_yes_rate": 0.32857142857142857,
+    "confusion_matrix": {
+      "TN": 265,
+      "FP": 103,
+      "FN": 205,
+      "TP": 127
+    }
+  },
+  "train_metrics_calibrated": {
+    "accuracy": 0.5585714285714286,
+    "balanced_accuracy": 0.5663141697223677,
+    "precision": 0.5253863134657837,
+    "recall": 0.7168674698795181,
+    "specificity": 0.4157608695652174,
+    "f1": 0.6063694267515923,
+    "predicted_yes_rate": 0.6471428571428571,
+    "confusion_matrix": {
+      "TN": 153,
+      "FP": 215,
+      "FN": 94,
+      "TP": 238
+    }
+  }
+}
+Precomputing CALL 1/2 for 300 TEST respondents...
+TEST CALL1/2: 100% 300/300 [01:15<00:00,  3.95it/s]
+Frozen training reflection memory: 308 items. TEST labels will never update memory.
+TEST CALL3 frozen memory: 100% 300/300 [01:29<00:00,  3.34it/s]
+
+==============================================================================
+RUN SUMMARY
+==============================================================================
+{
+  "experiment": "flare_vax_hbm2_reflection_calibrated",
+  "version": "hbm2_openai_colab_v3_reflection_calibrated",
+  "created_at": "2026-07-16T10:54:07.902681+00:00",
+  "run_config": {
+    "version": "hbm2_openai_colab_v3_reflection_calibrated",
+    "model": "gpt-4o-mini-2024-07-18",
+    "reflection_model": "gpt-4o-mini-2024-07-18",
+    "data_path": "/content/drive/MyDrive/Vaccination-Decision-Model/Data/nhis2024_hbm2_clean.csv",
+    "data_size_bytes": 14008143,
+    "sample_size": 1000,
+    "balanced_sample": false,
+    "joint_stratify": true,
+    "train_ratio": 0.7,
+    "random_seed": 42,
+    "memory_k": 3,
+    "memory_min_similarity": 0.5,
+    "memory_features": [
+      "age",
+      "health_status",
+      "chronic_or_risk_count",
+      "hbm_threat_score",
+      "hbm_barrier_count",
+      "hbm_barrier_score",
+      "retail_clinic_visits_12m",
+      "hbm2_pattern_0",
+      "hbm2_pattern_1",
+      "hbm2_pattern_2",
+      "hbm2_pattern_3",
+      "uninsured_yes_0.0",
+      "uninsured_yes_1.0",
+      "uninsured_yes_MISSING",
+      "medicare_yes_1.0",
+      "medicare_yes_MISSING",
+      "medicaid_yes_1.0",
+      "medicaid_yes_MISSING",
+      "private_insurance_yes_1.0",
+      "private_insurance_yes_MISSING",
+      "usual_care_place_1.0",
+      "usual_care_place_2.0",
+      "usual_care_place_3.0",
+      "last_doctor_visit_0.0",
+      "last_doctor_visit_1.0",
+      "last_doctor_visit_2.0",
+      "last_doctor_visit_3.0",
+      "last_doctor_visit_4.0",
+      "last_doctor_visit_5.0",
+      "last_doctor_visit_6.0",
+      "last_doctor_visit_MISSING",
+      "used_internet_test_results_yes_0.0",
+      "used_internet_test_results_yes_1.0",
+      "used_internet_test_results_yes_MISSING",
+      "used_internet_communicate_doctor_yes_0.0",
+      "used_internet_communicate_doctor_yes_1.0",
+      "used_internet_communicate_doctor_yes_MISSING",
+      "education_1.0",
+      "education_10.0",
+      "education_2.0",
+      "education_3.0",
+      "education_4.0",
+      "education_5.0",
+      "education_6.0",
+      "education_MISSING",
+      "income_poverty_ratio_1.0",
+      "income_poverty_ratio_10.0",
+      "income_poverty_ratio_11.0",
+      "income_poverty_ratio_12.0",
+      "income_poverty_ratio_13.0",
+      "income_poverty_ratio_14.0",
+      "income_poverty_ratio_2.0",
+      "income_poverty_ratio_3.0",
+      "income_poverty_ratio_4.0",
+      "income_poverty_ratio_5.0",
+      "income_poverty_ratio_6.0",
+      "income_poverty_ratio_MISSING",
+      "time_since_wellness_visit_0.0",
+      "time_since_wellness_visit_1.0",
+      "time_since_wellness_visit_2.0",
+      "time_since_wellness_visit_3.0",
+      "time_since_wellness_visit_4.0",
+      "time_since_wellness_visit_5.0",
+      "time_since_wellness_visit_6.0",
+      "time_since_wellness_visit_MISSING"
+    ],
+    "pattern_prior_mode": "theory",
+    "include_sensitive_context": true,
+    "assessment_max_tokens": 140,
+    "decision_max_tokens": 180,
+    "reflection_max_tokens": 240,
+    "temperature": 0.0,
+    "assessment_batch_size": 32,
+    "test_concurrent_samples": 12,
+    "max_concurrent_requests": 20,
+    "threshold_metric": "balanced_accuracy",
+    "pipeline": {
+      "train_call12": "concurrent precomputation",
+      "train_call3": "strictly sequential",
+      "train_reflection": "immediate after each wrong 50-percent decision",
+      "test_call12": "concurrent precomputation after train",
+      "test_call3": "concurrent with frozen training memory",
+      "test_memory_update": false
+    },
+    "fingerprint": "4ca52770fdd472737b8e1031d73084c5b33ec02b6b2cdd87e293eefe05ca198e"
+  },
+  "calibration": {
+    "threshold_metric": "balanced_accuracy",
+    "selected_threshold": 45,
+    "selected_metric_value": 0.5663141697223677,
+    "train_metrics_at_50": {
+      "accuracy": 0.56,
+      "balanced_accuracy": 0.5513194080670508,
+      "precision": 0.5521739130434783,
+      "recall": 0.3825301204819277,
+      "specificity": 0.720108695652174,
+      "f1": 0.45195729537366547,
+      "predicted_yes_rate": 0.32857142857142857,
+      "confusion_matrix": {
+        "TN": 265,
+        "FP": 103,
+        "FN": 205,
+        "TP": 127
+      }
+    },
+    "train_metrics_calibrated": {
+      "accuracy": 0.5585714285714286,
+      "balanced_accuracy": 0.5663141697223677,
+      "precision": 0.5253863134657837,
+      "recall": 0.7168674698795181,
+      "specificity": 0.4157608695652174,
+      "f1": 0.6063694267515923,
+      "predicted_yes_rate": 0.6471428571428571,
+      "confusion_matrix": {
+        "TN": 153,
+        "FP": 215,
+        "FN": 94,
+        "TP": 238
+      }
+    }
+  },
+  "train_metrics_at_50": {
+    "n_valid": 700,
+    "actual_yes_rate": 0.4742857142857143,
+    "threshold": 50,
+    "accuracy": 0.56,
+    "balanced_accuracy": 0.5513194080670508,
+    "precision": 0.5521739130434783,
+    "recall": 0.3825301204819277,
+    "specificity": 0.720108695652174,
+    "f1": 0.45195729537366547,
+    "predicted_yes_rate": 0.32857142857142857,
+    "confusion_matrix": {
+      "TN": 265,
+      "FP": 103,
+      "FN": 205,
+      "TP": 127
+    },
+    "brier_score": 0.24231428571428576,
+    "log_loss": 0.6766778371903357,
+    "roc_auc": 0.5899071830801467,
+    "average_precision": 0.5437062172643915
+  },
+  "train_metrics_calibrated": {
+    "n_valid": 700,
+    "actual_yes_rate": 0.4742857142857143,
+    "threshold": 45,
+    "accuracy": 0.5585714285714286,
+    "balanced_accuracy": 0.5663141697223677,
+    "precision": 0.5253863134657837,
+    "recall": 0.7168674698795181,
+    "specificity": 0.4157608695652174,
+    "f1": 0.6063694267515923,
+    "predicted_yes_rate": 0.6471428571428571,
+    "confusion_matrix": {
+      "TN": 153,
+      "FP": 215,
+      "FN": 94,
+      "TP": 238
+    },
+    "brier_score": 0.24231428571428576,
+    "log_loss": 0.6766778371903357,
+    "roc_auc": 0.5899071830801467,
+    "average_precision": 0.5437062172643915
+  },
+  "test_metrics_at_50": {
+    "n_valid": 300,
+    "actual_yes_rate": 0.47333333333333333,
+    "threshold": 50,
+    "accuracy": 0.5333333333333333,
+    "balanced_accuracy": 0.5227313246568015,
+    "precision": 0.5111111111111111,
+    "recall": 0.323943661971831,
+    "specificity": 0.7215189873417721,
+    "f1": 0.39655172413793105,
+    "predicted_yes_rate": 0.3,
+    "confusion_matrix": {
+      "TN": 114,
+      "FP": 44,
+      "FN": 96,
+      "TP": 46
+    },
+    "brier_score": 0.24938333333333332,
+    "log_loss": 0.6918484139632183,
+    "roc_auc": 0.5408940987698342,
+    "average_precision": 0.5022629376606782
+  },
+  "test_metrics_calibrated": {
+    "n_valid": 300,
+    "actual_yes_rate": 0.47333333333333333,
+    "threshold": 45,
+    "accuracy": 0.5133333333333333,
+    "balanced_accuracy": 0.5226421822071671,
+    "precision": 0.4900990099009901,
+    "recall": 0.6971830985915493,
+    "specificity": 0.34810126582278483,
+    "f1": 0.5755813953488372,
+    "predicted_yes_rate": 0.6733333333333333,
+    "confusion_matrix": {
+      "TN": 55,
+      "FP": 103,
+      "FN": 43,
+      "TP": 99
+    },
+    "brier_score": 0.24938333333333332,
+    "log_loss": 0.6918484139632183,
+    "roc_auc": 0.5408940987698342,
+    "average_precision": 0.5022629376606782
+  },
+  "n_assessments_completed": 1000,
+  "n_decisions_completed": 1000,
+  "n_reflections": 308,
+  "usage_total": {
+    "input_tokens": 2270275,
+    "output_tokens": 122518,
+    "total_tokens": 2392793
+  },
+  "files": {
+    "assessment_log": "/content/drive/MyDrive/Vaccination-Decision-Model/Results/gpt4o_reflection_500_natural/logs/assessment_log.jsonl",
+    "sample_log": "/content/drive/MyDrive/Vaccination-Decision-Model/Results/gpt4o_reflection_500_natural/logs/sample_log.jsonl",
+    "reflection_memory": "/content/drive/MyDrive/Vaccination-Decision-Model/Results/gpt4o_reflection_500_natural/logs/reflection_memory.jsonl",
+    "predictions": "/content/drive/MyDrive/Vaccination-Decision-Model/Results/gpt4o_reflection_500_natural/predictions.csv",
+    "pattern_metrics": "/content/drive/MyDrive/Vaccination-Decision-Model/Results/gpt4o_reflection_500_natural/pattern_metrics.csv",
+    "threshold_search": "/content/drive/MyDrive/Vaccination-Decision-Model/Results/gpt4o_reflection_500_natural/threshold_search.csv",
+    "threshold_calibration": "/content/drive/MyDrive/Vaccination-Decision-Model/Results/gpt4o_reflection_500_natural/threshold_calibration.json"
+  }
+}
+
+Assessment log : /content/drive/MyDrive/Vaccination-Decision-Model/Results/gpt4o_reflection_500_natural/logs/assessment_log.jsonl
+Sample log     : /content/drive/MyDrive/Vaccination-Decision-Model/Results/gpt4o_reflection_500_natural/logs/sample_log.jsonl
+Reflection log : /content/drive/MyDrive/Vaccination-Decision-Model/Results/gpt4o_reflection_500_natural/logs/reflection_memory.jsonl
+Predictions    : /content/drive/MyDrive/Vaccination-Decision-Model/Results/gpt4o_reflection_500_natural/predictions.csv
+Summary        : /content/drive/MyDrive/Vaccination-Decision-Model/Results/gpt4o_reflection_500_natural/summary.json
