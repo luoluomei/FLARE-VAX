@@ -1,0 +1,13 @@
+{
+  "version": "V5",
+  "feature_setting": "without_other_vaccination_history",
+  "method": "FLARE-VAX full run",
+  "model": "Llama 4 Scout 17B",
+  "test_n": 11057,
+  "selected_threshold": 47,
+  "accuracy": 0.6101112417,
+  "balanced_accuracy": 0.6179123533,
+  "roc_auc": 0.6333967095,
+  "f1": 0.6264621783,
+  "status": "complete_final_summary_11057_evaluated"
+}

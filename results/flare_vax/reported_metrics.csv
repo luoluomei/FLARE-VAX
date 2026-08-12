@@ -1,0 +1,7 @@
+version,feature_setting,method,model,test_n,selected_threshold,accuracy,balanced_accuracy,roc_auc,f1,status
+V4,with_other_vaccination_history,FLARE-VAX full run,Llama 4 Scout 17B,12853,51,0.7318142667,0.7311543278,0.7789050583,0.7173859229,complete
+V4,with_other_vaccination_history,FLARE-VAX full run,Llama 3 70B,12853,46,0.7278456392,0.7285185717,0.7546489866,0.7206962632,complete
+V4,with_other_vaccination_history,HBM8 pattern-only ablation,No LLM,12853,50,0.7277425417,0.7284201977,0.7692533072,0.720610687,complete
+V5,without_other_vaccination_history,FLARE-VAX full run,Llama 4 Scout 17B,11057,47,0.6101112417,0.6179123533,0.6333967095,0.6264621783,complete_final_summary_11057_evaluated
+V5,without_other_vaccination_history,FLARE-VAX full run,Llama 3 70B,12852,47,0.6255057579,0.6324873278,0.6763162515,0.6596903062,complete
+V5,without_other_vaccination_history,HBM8 pattern-only ablation,No LLM,12852,37,0.6255057579,0.6324873278,0.6796909247,0.6596903062,complete

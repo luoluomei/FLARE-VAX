@@ -1,0 +1,71 @@
+[
+  {
+    "id": "V4",
+    "name": "With Other Vaccination History",
+    "script": "scripts/40_flare_vax_v4_with_vaccine_history.py",
+    "input": "raw adult24.csv",
+    "other_vaccination_history": true,
+    "constructs": [
+      "observed threat",
+      "vaccine acceptance/benefit proxy",
+      "structural barriers",
+      "healthcare cues",
+      "navigation self-efficacy"
+    ],
+    "patterns": 8,
+    "calls_per_respondent": 1,
+    "reflection_calls": "selective high-confidence error reflection",
+    "memory": "distilled reflective exception rules",
+    "role": "main FLARE-VAX specification with other-vaccination history available"
+  },
+  {
+    "id": "V5",
+    "name": "Without Other Vaccination History",
+    "script": "scripts/50_flare_vax_v5_without_vaccine_history.py",
+    "input": "raw adult24.csv",
+    "other_vaccination_history": false,
+    "constructs": [
+      "observed threat",
+      "preventive engagement",
+      "structural barriers",
+      "healthcare cues",
+      "navigation self-efficacy"
+    ],
+    "patterns": 8,
+    "calls_per_respondent": 1,
+    "reflection_calls": "selective high-confidence error reflection",
+    "memory": "distilled structured reflective rules",
+    "role": "strict specification excluding every non-target vaccination-history predictor"
+  },
+  {
+    "id": "RG-FLARE-VAX",
+    "name": "Reward-Guided HBM Integration + Reward-Valued Memory",
+    "script": "scripts/81_rg_flare_vax_reward_memory_asu.py",
+    "base_variants": [
+      "V4",
+      "V5"
+    ],
+    "other_vaccination_history": "inherits V4/V5 boundary",
+    "constructs": "reuses five deterministic HBM proxies",
+    "base_probability": "HBM8 pattern anchor plus learned numerical reward integration",
+    "memory": "reflective rules with empirical directional Q-values",
+    "llm_role": "optional sparse reward guidance plus bounded residual correction",
+    "role": "reward-guided extension of both V4 and V5"
+  },
+  {
+    "id": "TRBM-FLARE-VAX",
+    "name": "Theory-Residual Behavioral Memory",
+    "script": "scripts/82_trbm_flare_vax_asu.py",
+    "ablation_script": "scripts/83_trbm_ablation_asu.py",
+    "base_variants": [
+      "V4",
+      "V5"
+    ],
+    "other_vaccination_history": "inherits V4/V5 boundary",
+    "constructs": "reuses five deterministic HBM proxies",
+    "base_probability": "non-negative theory-constrained logistic prior using HBM constructs only",
+    "memory": "reusable mechanisms attached to out-of-fold signed theory residuals",
+    "llm_role": "mechanism explanation and applicability/direction gate; no numeric probability",
+    "role": "theory-residual extension of both V4 and V5"
+  }
+]

@@ -1,0 +1,13 @@
+{
+  "variant": "V4",
+  "model": "llama3-groq-70b-tool-use",
+  "method": "zero_shot_direct",
+  "test_n": 12853.0,
+  "selected_threshold": 46.0,
+  "accuracy": 0.4787209211857154,
+  "balanced_accuracy": 0.5047630442108985,
+  "roc_auc": 0.5047630442108985,
+  "f1": 0.6448637761051628,
+  "status": "complete",
+  "note": ""
+}

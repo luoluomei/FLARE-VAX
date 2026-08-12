@@ -1,0 +1,75 @@
+result_group,version,feature_setting,model,method,test_n,selected_threshold,accuracy,balanced_accuracy,roc_auc,f1,status,note,source
+ml,V5,without_other_vaccine_history,logistic,logistic,,,0.6766,,0.7433,0.664,complete,,user-supplied baseline console output
+ml,V5,without_other_vaccine_history,random_forest,random_forest,,,0.6829,,0.7507,0.666,complete,,user-supplied baseline console output
+ml,V5,without_other_vaccine_history,gradient_boosting,gradient_boosting,,,0.6867,,0.7553,0.6691,complete,,user-supplied baseline console output
+ml,V5,without_other_vaccine_history,svm,svm,,,0.6786,,0.7477,0.6636,complete,,user-supplied baseline console output
+ml,V5,without_other_vaccine_history,mlp,mlp,,,0.6824,,0.7506,0.658,complete,,user-supplied baseline console output
+ml,V5,without_other_vaccine_history,knn,knn,,,0.6289,,0.6708,0.6119,complete,,user-supplied baseline console output
+ml,V5,without_other_vaccine_history,xgboost,xgboost,,,0.6871,,0.757,0.6697,complete,,user-supplied baseline console output
+ml,V4,with_other_vaccine_history,logistic,logistic,,,0.7604,,0.8398,0.7484,complete,,user-supplied baseline console output
+ml,V4,with_other_vaccine_history,random_forest,random_forest,,,0.7617,,0.8377,0.7471,complete,,user-supplied baseline console output
+ml,V4,with_other_vaccine_history,gradient_boosting,gradient_boosting,,,0.763,,0.8444,0.7506,complete,,user-supplied baseline console output
+ml,V4,with_other_vaccine_history,svm,svm,,,0.763,,0.8356,0.7552,complete,,user-supplied baseline console output
+ml,V4,with_other_vaccine_history,mlp,mlp,,,0.7587,,0.8402,0.7509,complete,,user-supplied baseline console output
+ml,V4,with_other_vaccine_history,knn,knn,,,0.7102,,0.7689,0.6981,complete,,user-supplied baseline console output
+ml,V4,with_other_vaccine_history,xgboost,xgboost,,,0.7647,,0.8452,0.7519,complete,,user-supplied baseline console output
+icl,,,llama3-groq-70b-tool-use,random_balanced_8shot_direct,12853.0,5.0,0.473663736092741,0.5,0.5,0.6428382873132359,complete,,
+icl,,,llama3-groq-70b-tool-use,random_balanced_8shot_generic_cot,12853.0,29.0,0.5185559791488369,0.5399172812060219,0.5398522944583168,0.6503954802259887,complete,,
+icl,,,llama3-groq-70b-tool-use,representative_8shot_direct,,,,,,,pending_rerun,Pending rerun; lower-priority selection variant withheld because preliminary output was degenerate.,
+icl,,,llama3-groq-70b-tool-use,similarity_selected_8shot_direct,,,,,,,pending_rerun,Pending rerun; lower-priority selection variant withheld because preliminary output was degenerate.,
+icl,,,llama3-groq-70b-tool-use,zero_shot_direct,12853.0,46.0,0.4787209211857154,0.5047630442108985,0.5047630442108985,0.6448637761051628,complete,,
+icl,,,llama4-scout-17b,random_balanced_8shot_direct,12853.0,86.0,0.6431961409787598,0.6296613574933981,0.6851243841252174,0.4973695747479176,complete,,
+icl,,,llama4-scout-17b,random_balanced_8shot_generic_cot,12853.0,73.0,0.5829767369485723,0.5622061210159348,0.604843473354098,0.2760669908157752,complete,,
+icl,,,llama4-scout-17b,representative_8shot_direct,12853.0,75.0,0.6053061542052439,0.6211349942163858,0.6553865309289816,0.6886775084381712,complete,,
+icl,,,llama4-scout-17b,similarity_selected_8shot_direct,12853.0,79.0,0.6189216525324827,0.622472278957648,0.6543427973850877,0.6316739359302149,complete,,
+icl,,,llama4-scout-17b,zero_shot_direct,12853.0,81.0,0.6338597992686532,0.6452682047875311,0.7136068142726583,0.6903947368421053,complete,,
+icl,,,llama3-groq-70b-tool-use,random_balanced_8shot_direct,,,,,,,pending_rerun,Pending unified rerun; preliminary outputs were near-constant and are not reported.,
+icl,,,llama3-groq-70b-tool-use,random_balanced_8shot_generic_cot,,,,,,,pending_rerun,Pending unified rerun; preliminary outputs were near-constant and are not reported.,
+icl,,,llama3-groq-70b-tool-use,representative_8shot_direct,,,,,,,pending_rerun,Pending unified rerun; preliminary outputs were near-constant and are not reported.,
+icl,,,llama3-groq-70b-tool-use,similarity_selected_8shot_direct,,,,,,,pending_rerun,Pending unified rerun; preliminary outputs were near-constant and are not reported.,
+icl,,,llama3-groq-70b-tool-use,zero_shot_direct,,,,,,,pending_rerun,Pending unified rerun; preliminary outputs were near-constant and are not reported.,
+icl,,,llama4-scout-17b,random_balanced_8shot_direct,12852.0,82.0,0.5917366946778712,0.5931753510999602,0.6228846582539632,0.590302178496135,complete,,
+icl,,,llama4-scout-17b,random_balanced_8shot_generic_cot,12852.0,73.0,0.5460628695922813,0.5223235321114953,0.5389261151737056,0.1248124812481248,complete,,
+icl,,,llama4-scout-17b,representative_8shot_direct,12852.0,75.0,0.62177093059446,0.6231940152372792,0.6251290171240911,0.6197293280137683,complete,,
+icl,,,llama4-scout-17b,similarity_selected_8shot_direct,12852.0,79.0,0.5772642390289449,0.5782634193107528,0.6050694162151188,0.5725076717286962,complete,,
+icl,,,llama4-scout-17b,zero_shot_direct,12852.0,81.0,0.630718954248366,0.6367071566257687,0.6622018801095079,0.6584628670120898,complete,,
+transfer_baseline,,,llama3-groq-70b-tool-use,hbm_copb,12853.0,51.0,0.6418734925698281,0.6463550726326759,0.6698383793060246,0.6592641942408766,complete,,
+transfer_baseline,,,llama4-scout-17b,hbm_copb,12853.0,51.0,0.6726056173655955,0.6752946681001872,0.7130605152515508,0.6775973030953111,complete,,
+transfer_baseline,,,llama3-groq-70b-tool-use,hbm_copb,12852.0,51.0,0.5663709928415811,0.5634402186661771,0.5718978581651836,0.5258231940781077,complete,,
+transfer_baseline,,,llama4-scout-17b,hbm_copb,12852.0,61.0,0.6375661375661376,0.637804567104203,0.6651722365250806,0.6268226245793944,complete,,
+transfer_baseline,,,llama3-groq-70b-tool-use,hbm_pbj,12853.0,76.0,0.5831323426437408,0.5935201911749137,0.624323290434553,0.6424663018817562,complete,,
+transfer_baseline,,,llama4-scout-17b,hbm_pbj,,,,,,,pending,PB&J V4 17B has not been finalized.,
+flare_vax,V4,with_other_vaccination_history,Llama 4 Scout 17B,FLARE-VAX full run,12853.0,51.0,0.7318142667,0.7311543278,0.7789050583,0.7173859229,complete,,
+flare_vax,V4,with_other_vaccination_history,Llama 3 70B,FLARE-VAX full run,12853.0,46.0,0.7278456392,0.7285185717,0.7546489866,0.7206962632,complete,,
+flare_vax,V4,with_other_vaccination_history,No LLM,HBM8 pattern-only ablation,12853.0,50.0,0.7277425417,0.7284201977,0.7692533072,0.720610687,complete,,
+flare_vax,V5,without_other_vaccination_history,Llama 4 Scout 17B,FLARE-VAX full run,11057.0,47.0,0.6101112417,0.6179123533,0.6333967095,0.6264621783,complete_final_summary_11057_evaluated,,
+flare_vax,V5,without_other_vaccination_history,Llama 3 70B,FLARE-VAX full run,12852.0,47.0,0.6255057579,0.6324873278,0.6763162515,0.6596903062,complete,,
+flare_vax,V5,without_other_vaccination_history,No LLM,HBM8 pattern-only ablation,12852.0,37.0,0.6255057579,0.6324873278,0.6796909247,0.6596903062,complete,,
+reward_memory,V4,,llama4-scout-17b,pattern_anchor,12853.0,35.0,0.7278456391503929,0.7285185716658266,0.7691376077689818,0.7206962631747046,complete,,results/reward_memory/benchmark_results_public.csv
+reward_memory,V4,,llama4-scout-17b,reward_prior,12853.0,53.0,0.7416945460203843,0.7403430518446864,0.821574361932844,0.7238396273498586,complete,,results/reward_memory/benchmark_results_public.csv
+reward_memory,V4,,llama4-scout-17b,final_reward_memory,12853.0,50.0,0.7390492492025208,0.7394903451035466,0.8220772110062518,0.7308186195826644,complete,,results/reward_memory/benchmark_results_public.csv
+reward_memory,V4,,llama4-scout-17b,final_reward_memory_survey_weighted,12853.0,50.0,0.7292872096846307,0.7264788318457185,0.8098289417382626,0.6914562604247979,complete,,results/reward_memory/benchmark_results_public.csv
+reward_memory,V4,,llama4-scout-17b,final_without_memory,12853.0,50.0,0.7364039523846573,0.7377335540916035,0.8203450282770657,0.7327654204133144,complete,,results/reward_memory/benchmark_results_public.csv
+reward_memory,V4,,llama3-groq-70b-tool-use,pattern_anchor,12853.0,35.0,0.7278456391503929,0.7285185716658266,0.7691376077689818,0.7206962631747046,complete,,results/reward_memory/benchmark_results_public.csv
+reward_memory,V4,,llama3-groq-70b-tool-use,reward_prior,12853.0,47.0,0.7371041780129153,0.7389987257595667,0.8217906040307565,0.7363246195864221,complete,,results/reward_memory/benchmark_results_public.csv
+reward_memory,V4,,llama3-groq-70b-tool-use,final_reward_memory,12853.0,52.0,0.7384268264218471,0.7398195886301235,0.8210099860824196,0.7351087299086039,complete,,results/reward_memory/benchmark_results_public.csv
+reward_memory,V4,,llama3-groq-70b-tool-use,final_reward_memory_survey_weighted,12853.0,52.0,0.7272487642642219,0.7271502747960307,0.8091465771262336,0.6957437687782844,complete,,results/reward_memory/benchmark_results_public.csv
+reward_memory,V4,,llama3-groq-70b-tool-use,final_without_memory,12853.0,52.0,0.7371041780129153,0.7389987257595667,0.8218328278134053,0.7363246195864221,complete,,results/reward_memory/benchmark_results_public.csv
+reward_memory,V5,,llama4-scout-17b,pattern_anchor,12852.0,37.0,0.625505757858699,0.6324873277646891,0.6796909247028575,0.6596903061585238,complete,,results/reward_memory/benchmark_results_public.csv
+reward_memory,V5,,llama4-scout-17b,reward_prior,12852.0,49.0,0.6580298786181139,0.6585243092739345,0.7222046168363826,0.6492698108690448,complete,,results/reward_memory/benchmark_results_public.csv
+reward_memory,V5,,llama4-scout-17b,final_reward_memory,12852.0,46.0,0.6603641456582633,0.6634840742893859,0.7204490199020995,0.6686404008198589,complete,,results/reward_memory/benchmark_results_public.csv
+reward_memory,V5,,llama4-scout-17b,final_reward_memory_survey_weighted,12852.0,46.0,0.6635286381278062,0.6634848556582089,0.72341718515688,0.6276665019879584,complete,,results/reward_memory/benchmark_results_public.csv
+reward_memory,V5,,llama4-scout-17b,final_without_memory,12852.0,46.0,0.6605975723622782,0.6636487878509725,0.7203030044744392,0.6684402553967771,complete,,results/reward_memory/benchmark_results_public.csv
+reward_memory,V5,,llama3-groq-70b-tool-use,pattern_anchor,12852.0,37.0,0.625505757858699,0.6324873277646891,0.6796909247028575,0.6596903061585238,complete,,results/reward_memory/benchmark_results_public.csv
+reward_memory,V5,,llama3-groq-70b-tool-use,reward_prior,12852.0,45.0,0.6589635854341737,0.663491213576885,0.7223389641428071,0.6757896294104594,complete,,results/reward_memory/benchmark_results_public.csv
+reward_memory,V5,,llama3-groq-70b-tool-use,final_reward_memory,12852.0,50.0,0.6604419545596016,0.663761996552744,0.7208383903286453,0.669944032672818,complete,,results/reward_memory/benchmark_results_public.csv
+reward_memory,V5,,llama3-groq-70b-tool-use,final_reward_memory_survey_weighted,12852.0,50.0,0.6615533231035511,0.6627394352892197,0.7234237558573395,0.6290139508967091,complete,,results/reward_memory/benchmark_results_public.csv
+reward_memory,V5,,llama3-groq-70b-tool-use,final_without_memory,12852.0,50.0,0.659041394335512,0.6631000826117553,0.7213922436255148,0.6730826618919726,complete,,results/reward_memory/benchmark_results_public.csv
+trbm,V4,,llama4-scout-17b,trbm_full,12853.0,0.4800000000000001,0.7389714463549366,0.7371227831906748,0.8204747676855988,0.7181382844661011,complete,,results/trbm/full_results_public.csv
+trbm,V4,,llama4-scout-17b,trbm_full_survey_weighted,12853.0,0.4800000000000001,0.731536713590658,0.7235664841063089,0.811335292806949,0.6812361195155199,complete,,results/trbm/full_results_public.csv
+trbm,V4,,llama3-groq-70b-tool-use,trbm_full,12853.0,0.4800000000000001,0.7389714463549366,0.7371227831906748,0.8204747676855988,0.7181382844661011,complete,,results/trbm/full_results_public.csv
+trbm,V4,,llama3-groq-70b-tool-use,trbm_full_survey_weighted,12853.0,0.4800000000000001,0.731536713590658,0.7235664841063089,0.811335292806949,0.6812361195155199,complete,,results/trbm/full_results_public.csv
+trbm,V5,,llama4-scout-17b,trbm_full,12853.0,0.44,0.653077102621956,0.6574235936894667,0.7199811678707492,0.6690417872782602,complete,,results/trbm/full_results_public.csv
+trbm,V5,,llama4-scout-17b,trbm_full_survey_weighted,12853.0,0.44,0.6560740370468268,0.6600561934888283,0.7243535736095881,0.6315488102543951,complete,,results/trbm/full_results_public.csv
+trbm,V5,,llama3-groq-70b-tool-use,trbm_full,12853.0,0.44,0.653077102621956,0.6574235936894667,0.7199811678707492,0.6690417872782602,complete,,results/trbm/full_results_public.csv
+trbm,V5,,llama3-groq-70b-tool-use,trbm_full_survey_weighted,12853.0,0.44,0.6560740370468268,0.6600561934888283,0.7243535736095881,0.6315488102543951,complete,,results/trbm/full_results_public.csv

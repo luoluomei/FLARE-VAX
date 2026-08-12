@@ -1,0 +1,13 @@
+{
+  "variant": "V5",
+  "model": "llama4-scout-17b",
+  "method": "similarity_selected_8shot_direct",
+  "test_n": 12852.0,
+  "selected_threshold": 79.0,
+  "accuracy": 0.5772642390289449,
+  "balanced_accuracy": 0.5782634193107528,
+  "roc_auc": 0.6050694162151188,
+  "f1": 0.5725076717286962,
+  "status": "complete",
+  "note": ""
+}

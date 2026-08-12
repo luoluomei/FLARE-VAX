@@ -1,0 +1,21 @@
+variant,model,method,test_n,selected_threshold,accuracy,balanced_accuracy,roc_auc,f1,status,note
+V4,llama3-groq-70b-tool-use,random_balanced_8shot_direct,12853.0,5.0,0.473663736092741,0.5,0.5,0.6428382873132359,complete,
+V4,llama3-groq-70b-tool-use,random_balanced_8shot_generic_cot,12853.0,29.0,0.5185559791488369,0.5399172812060219,0.5398522944583168,0.6503954802259887,complete,
+V4,llama3-groq-70b-tool-use,representative_8shot_direct,,,,,,,pending_rerun,Pending rerun; lower-priority selection variant withheld because preliminary output was degenerate.
+V4,llama3-groq-70b-tool-use,similarity_selected_8shot_direct,,,,,,,pending_rerun,Pending rerun; lower-priority selection variant withheld because preliminary output was degenerate.
+V4,llama3-groq-70b-tool-use,zero_shot_direct,12853.0,46.0,0.4787209211857154,0.5047630442108985,0.5047630442108985,0.6448637761051628,complete,
+V4,llama4-scout-17b,random_balanced_8shot_direct,12853.0,86.0,0.6431961409787598,0.6296613574933981,0.6851243841252174,0.4973695747479176,complete,
+V4,llama4-scout-17b,random_balanced_8shot_generic_cot,12853.0,73.0,0.5829767369485723,0.5622061210159348,0.604843473354098,0.2760669908157752,complete,
+V4,llama4-scout-17b,representative_8shot_direct,12853.0,75.0,0.6053061542052439,0.6211349942163858,0.6553865309289816,0.6886775084381712,complete,
+V4,llama4-scout-17b,similarity_selected_8shot_direct,12853.0,79.0,0.6189216525324827,0.622472278957648,0.6543427973850877,0.6316739359302149,complete,
+V4,llama4-scout-17b,zero_shot_direct,12853.0,81.0,0.6338597992686532,0.6452682047875311,0.7136068142726583,0.6903947368421053,complete,
+V5,llama3-groq-70b-tool-use,random_balanced_8shot_direct,,,,,,,pending_rerun,Pending unified rerun; preliminary outputs were near-constant and are not reported.
+V5,llama3-groq-70b-tool-use,random_balanced_8shot_generic_cot,,,,,,,pending_rerun,Pending unified rerun; preliminary outputs were near-constant and are not reported.
+V5,llama3-groq-70b-tool-use,representative_8shot_direct,,,,,,,pending_rerun,Pending unified rerun; preliminary outputs were near-constant and are not reported.
+V5,llama3-groq-70b-tool-use,similarity_selected_8shot_direct,,,,,,,pending_rerun,Pending unified rerun; preliminary outputs were near-constant and are not reported.
+V5,llama3-groq-70b-tool-use,zero_shot_direct,,,,,,,pending_rerun,Pending unified rerun; preliminary outputs were near-constant and are not reported.
+V5,llama4-scout-17b,random_balanced_8shot_direct,12852.0,82.0,0.5917366946778712,0.5931753510999602,0.6228846582539632,0.590302178496135,complete,
+V5,llama4-scout-17b,random_balanced_8shot_generic_cot,12852.0,73.0,0.5460628695922813,0.5223235321114953,0.5389261151737056,0.12481248124812482,complete,
+V5,llama4-scout-17b,representative_8shot_direct,12852.0,75.0,0.62177093059446,0.6231940152372792,0.6251290171240911,0.6197293280137683,complete,
+V5,llama4-scout-17b,similarity_selected_8shot_direct,12852.0,79.0,0.5772642390289449,0.5782634193107528,0.6050694162151188,0.5725076717286962,complete,
+V5,llama4-scout-17b,zero_shot_direct,12852.0,81.0,0.630718954248366,0.6367071566257687,0.6622018801095079,0.6584628670120898,complete,

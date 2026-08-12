@@ -1,0 +1,13 @@
+{
+  "variant": "V4",
+  "model": "llama4-scout-17b",
+  "method": "hbm_copb",
+  "test_n": 12853,
+  "selected_threshold": 51.0,
+  "accuracy": 0.6726056173655955,
+  "balanced_accuracy": 0.6752946681001872,
+  "roc_auc": 0.7130605152515508,
+  "f1": 0.6775973030953111,
+  "status": "complete",
+  "note": ""
+}

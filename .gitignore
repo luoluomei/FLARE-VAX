@@ -1,0 +1,35 @@
+# Raw/restricted data
+adult24.csv
+*.csv.gz
+data/raw/
+data/private/
+
+# Credentials and local configuration
+.env
+.env.*
+*.key
+
+# Large generated outputs
+**/logs/
+**/predictions/
+**/*predictions.csv
+**/*predictions.jsonl
+**/threshold_search.csv
+**/support_set*.json
+**/selection_artifacts/
+outputs/
+runs/
+checkpoints/
+
+# Python/Jupyter
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.venv/
+venv/
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

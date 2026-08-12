@@ -1,0 +1,13 @@
+{
+  "version": "V5",
+  "feature_setting": "without_other_vaccination_history",
+  "method": "HBM8 pattern-only ablation",
+  "model": "No LLM",
+  "test_n": 12852,
+  "selected_threshold": 37,
+  "accuracy": 0.6255057579,
+  "balanced_accuracy": 0.6324873278,
+  "roc_auc": 0.6796909247,
+  "f1": 0.6596903062,
+  "status": "complete"
+}

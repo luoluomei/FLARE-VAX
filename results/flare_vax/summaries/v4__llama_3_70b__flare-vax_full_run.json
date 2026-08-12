@@ -1,0 +1,13 @@
+{
+  "version": "V4",
+  "feature_setting": "with_other_vaccination_history",
+  "method": "FLARE-VAX full run",
+  "model": "Llama 3 70B",
+  "test_n": 12853,
+  "selected_threshold": 46,
+  "accuracy": 0.7278456392,
+  "balanced_accuracy": 0.7285185717,
+  "roc_auc": 0.7546489866,
+  "f1": 0.7206962632,
+  "status": "complete"
+}
