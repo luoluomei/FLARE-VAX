@@ -241,7 +241,7 @@ LLM 把这些 failure 总结成 reusable mechanism memory，例如某类 healthc
 
 | Version | Model | Method | Test N | Threshold | Accuracy | Balanced Acc. | ROC-AUC | F1 | Status |
 |---|---|---|---|---|---|---|---|---|---|
-| V4 | Llama 4 Scout 17B | FLARE-VAX full run | 12853 | 51 | 0.7318 | 0.7312 | 0.7789 | 0.7174 | complete |
+| V4 | Llama 4 Scout 17B | FLARE-VAX full run | 12853 | 51 | 0.7298 | 0.7312 | 0.7789 | 0.7174 | complete |
 | V4 | Llama 3 70B | FLARE-VAX full run | 12853 | 46 | 0.7278 | 0.7285 | 0.7546 | 0.7207 | complete |
 | V4 | No LLM | HBM8 pattern-only ablation | 12853 | 50 | 0.7277 | 0.7284 | 0.7693 | 0.7206 | complete |
 | V5 | Llama 4 Scout 17B | FLARE-VAX full run | 11057 | 47 | 0.6101 | 0.6179 | 0.6334 | 0.6265 | complete_final_summary_11057_evaluated |
