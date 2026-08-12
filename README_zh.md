@@ -13,34 +13,144 @@
 
 两者都构造 threat、acceptance/engagement、barriers、healthcare cues、navigation self-efficacy 五个 proxy，再合并成 Motivation、Capability、Activation，并形成 8 个行为 pattern。Pattern prior 只从 memory split 估计，reflection 只基于训练侧错误建立并在 calibration/test 前冻结。
 
-## 2. 本次新增的两个 V4/V5 改版
 
-这两个方法都**不是新的 feature version**，而是在原 V4/V5 的变量边界和 HBM proxy 上继续扩展。V4 仍允许其他疫苗史，V5 仍严格排除其他疫苗史；改变的是 HBM prior 如何变成最终概率，以及 reflective memory 如何建立和使用。
+## 新增思路拓展：RG-FLARE-VAX 与 TRBM-FLARE-VAX
 
-### 2.1 RG-FLARE-VAX：Reward-Guided HBM Integration + Reward-Valued Memory
+下面两个方法都是在原 V4/V5 基础上的进一步拓展，而不是新的 feature version。V4 仍然允许使用其他疫苗史，V5 仍然完全排除其他疫苗史；五个 HBM proxy、HBM8 pattern 以及原有的数据边界都继续保留。
+
+两个改版主要回答两个新的问题：
+
+1. 原来的 HBM8 pattern prior 比较粗，能不能先得到一个更个体化、更稳定的 numerical prior？
+2. Reflective memory 不应该只依赖 LLM 自己判断“这条经验是否合理”，能不能进一步利用历史数据判断这条经验是否真的有预测价值？
+
+### RG-FLARE-VAX：Reward-Guided HBM Integration + Reward-Valued Memory
 
 代码：`scripts/81_rg_flare_vax_reward_memory_asu.py`
 
-RG 版本保留原来的 HBM8 pattern prior，但在它上面增加一个小型数值 reward layer，用五个 HBM construct 学习如何调整 pattern anchor。Memory split 使用 5-fold out-of-fold 预测避免同一样本既参与拟合又用于自己的 reward 评估。LLM 可以提出很稀疏的 pattern-specific reward-weight 修改，但只有在独立 OOF validation 上真正降低 log loss 才会被接受。
+RG 可以理解为在原 FLARE-VAX 中增加了一层 **reward-guided probability calibration**，同时重新定义 reflective memory 的价值。它仍然保留原来的 HBM8 pattern，但不再直接把 pattern vaccination rate 当作最终的 probability anchor，而是先根据五个 HBM construct 得到一个更个体化的 `P_reward`，再让 LLM 和 memory 处理这个 numerical prior 仍然没有解释好的部分。
 
-第二个变化是 memory 不再只按“是否像一个好规则”来检索。每条 reflection rule 会得到一个经验性的 directional Q-value，用来衡量这个 correction direction 在相似历史样本中是否真的降低过 loss。测试时 retrieval 同时考虑 similarity、HBM8 pattern match、memory quality 和 Q-value。最终 LLM 以 reward-calibrated HBM prior 为锚，只允许做较小的 residual correction（默认 ±15 个百分点）。
+整体逻辑可以概括成四个阶段：
 
-所以 RG 相对原 V4/V5 的核心变化可以概括为：**重新学习 HBM construct 的数值整合方式，并用历史 reward 给 memory 定价**。LLM 本身不微调；由于 NHIS 是横截面数据，这里是 SILIC-inspired reward learning，而不是 sequential IRL。
+**1. 先沿用原 V4/V5 的 HBM 表征，得到最初的 behavioral anchor。**  
+每个 respondent 仍然先得到 threat、acceptance/engagement、barrier、cue、self-efficacy 五个 proxy，再形成 Motivation、Capability、Activation 和 HBM8 pattern。Memory split 中每个 pattern 的历史 vaccination rate 继续记为 `P_pattern`，表示“这一类 respondent 平均有多大概率接种”。
 
-### 2.2 TRBM-FLARE-VAX：Theory-Residual Behavioral Memory
+**2. 在 `P_pattern` 基础上学习更个体化的 `P_reward`。**  
+原版中，只要两个人属于同一个 HBM8 pattern，他们的初始 probability 基本相同；但实际上，他们在 threat、barrier、cue 等具体 construct 上仍然可能差很多。RG 因此额外拟合一个 cross-fitted numerical reward model，学习某个 respondent 在五个 HBM dimensions 上相对同 pattern 平均水平的偏离应该怎样调整 `P_pattern`，从而得到更细的 `P_reward`。
+
+这里还可以加入一次 pattern-level 的 LLM guidance。LLM 看到的是某个 pattern 的整体 prediction error 和各 construct contribution，而不是单个 respondent；它只能建议少量 construct weight 应该稍微增加、降低或保持不变。这个建议不会直接采用，只有在独立的 OOF validation data 上确实降低 log loss 时才会被接受。因此这一层的逻辑是：
+
+`LLM proposes → data validates → accept / reject`
+
+**3. 以 `P_reward` 为新的 probability anchor，建立 reward-valued reflective memory。**  
+在 memory sample 上，LLM 不再从 `P_pattern` 开始，而是把 `P_reward` 当作当前已经比较可靠的基础判断，再根据 respondent 更具体的 observed profile 做一个较小的 residual adjustment。也就是说，LLM 的任务不是重新预测一次，而是判断：
+
+> 在 HBM + reward layer 已经给出 `P_reward` 之后，这个人还有没有一些更细的 observable evidence，意味着 probability 应该略微提高或降低？
+
+高置信度错误会再次进入 reflection，LLM 将错误原因总结成 reusable correction rule。
+
+RG 与原版最重要的区别是：这些 memory 不再只根据 reflection confidence 或语言上是否合理来判断价值。每条 rule 还会得到一个 empirical **Q-value**。系统会找历史上与该 memory source case 相似的 respondents，并检查：如果按照这条 rule 建议的 increase/decrease 方向去小幅修正他们的 probability，prediction loss 是否真的下降。
+
+因此一条 memory 的价值同时来自：
+
+`semantic plausibility + empirical predictive utility`
+
+也就是说，它不仅要“解释得通”，还需要“历史上真的有用”。
+
+**4. 检索相似且高价值的 memory，再让 LLM 做最终小幅修正。**  
+到了 calibration/test 阶段，retrieval 不再只看 respondent similarity，也会考虑 memory 的 Q-value。系统更倾向于返回那些既和当前 respondent 相似、又在历史上确实改善过预测的 correction rules。
+
+最终 LLM 输入：
+
+`P_reward + 当前 respondent profile + retrieved reward-valued memories`
+
+然后判断哪些 memory 真正适用、是否存在 contradiction，以及 probability 应该略微 increase、decrease 还是保持不变。最终仍然只允许围绕 `P_reward` 做一个 bounded residual correction，再由 calibration 选择 classification threshold。
+
+因此，RG 相比原版最核心的变化可以概括成两点：
+
+> **第一，把粗粒度的 HBM8 pattern prior 进一步学习成更个体化的 reward-calibrated prior；第二，把 reflective memory 从“LLM 生成的经验规则”升级成“经过历史 prediction reward 验证的经验规则”。**
+
+LLM 本身不进行 fine-tuning。
+
+### TRBM-FLARE-VAX：Theory-Residual Behavioral Memory
 
 代码：`scripts/82_trbm_flare_vax_asu.py`  
-离线 ablation：`scripts/83_trbm_ablation_asu.py`  
-方法说明：`docs/trbm_method_notes.md`
+Ablation：`scripts/83_trbm_ablation_asu.py`
 
-TRBM 进一步改变了 LLM 的角色：基础概率不再由 LLM 估计。它先只使用五个正向化的 HBM construct 拟合一个带非负系数约束的小型 logistic model，得到 `P_HBM`。这个 prior 不直接使用完整的 NHIS raw features，因此它代表的是 theory-derived prior，而不是 full-feature ML prediction。
+TRBM 在 RG 的基础上进一步限制了 LLM 对 numerical prediction 的影响。它的核心思想是：**先让 HBM theory 自己形成一个明确的基础 probability，再专门学习“HBM theory 在什么情况下会失效”。**
 
-之后 memory 专门学习 **HBM theory residual**。Memory respondent 使用 out-of-fold 的 `actual - P_HBM_OOF` 找出理论 prior 明显低估或高估的样本，再让 LLM 解释这些偏差背后的可复用机制。LLM 不允许输出 probability 或数值 delta。到了 calibration/test，LLM 只判断某个历史机制是否适用以及方向是 increase / decrease / none；真正的 correction magnitude 来自被选中历史 memory 的 signed residual，最后再由 calibration split 选择一个全局 `alpha`。
+因此，TRBM 不再让 LLM 直接决定 probability 或 residual magnitude。LLM 主要负责识别和匹配 **theory-failure mechanism**，而真正的 numerical correction 来自历史数据。
 
-因此 TRBM 相对原 V4/V5 的重点是：**把概率估计和校准从 LLM 中拿出来，只让 LLM 做 theory failure 的语义机制识别和 gating**。
+整体流程可以理解成四个阶段：
 
+**1. 先把五个 HBM construct 合成为一个明确的 theory prior。**  
+TRBM 仍然使用原 V4/V5 的五个 HBM construct，但先把方向统一成“数值越高，理论上越支持 vaccination”。之后，只使用这五个理论变量拟合一个带 non-negative constraint 的小型 logistic model，得到每个 respondent 的 `P_HBM`。
 
-## 3. Zero-shot / Few-shot baseline
+这里的重点是：`P_HBM` 不是普通 full-feature ML prediction。模型没有使用完整 NHIS raw feature set，而是只使用 HBM-derived constructs，因此它代表的是：
+
+> **如果只按照当前 HBM theory 表征来判断，这个人应该有多大概率接种。**
+
+这样，TRBM 先把“theory 本身能解释多少”单独固定下来。
+
+**2. 再从历史数据中找出 HBM theory 明显解释失败的 case。**  
+在 memory split 中，TRBM 使用 cross-fitting 为每个 respondent 得到一个 OOF `P_HBM`，然后比较这个 theory prior 与真实 vaccination outcome 的差异：
+
+`theory residual = actual - P_HBM_OOF`
+
+如果一个人的 residual 很大，就说明当前五维 HBM representation 对这个人的实际行为出现了明显偏差。例如：
+
+- `P_HBM` 很低，但这个人实际接种了：theory 明显低估；
+- `P_HBM` 很高，但这个人实际没有接种：theory 明显高估。
+
+因此 TRBM 的 memory 不是从“LLM 哪里预测错了”开始，而是从：
+
+> **HBM theory 本身在哪些 historical cases 上解释得不够好？**
+
+开始建立。
+
+**3. 让 LLM 总结这些 theory failure 为什么发生，并在新 respondent 上判断 mechanism 是否能够迁移。**  
+对于 residual 较大的历史 case，LLM 在 memory-building 阶段读取它的 HBM state、`P_HBM`、真实 outcome 和更完整的 observed profile，然后分析：
+
+> 当前 HBM prior 为什么会在这个人身上高估或低估 vaccination behavior？还有什么可观察的机制没有被五个 HBM construct 充分表达？
+
+LLM 把这些 failure 总结成 reusable mechanism memory，例如某类 healthcare engagement、access/capability gap、preventive habit 或 proxy measurement gap。
+
+当 calibration/test 中出现新的 respondent 时，系统先检索与他在 theory state 和 observed context 上相似的 historical theory-failure memories。此时 LLM 只负责做一个 **mechanism gate**：
+
+- 这些 historical failure mechanism 是否真的适用于当前 respondent？
+- 如果适用，历史证据支持 increase 还是 decrease？
+- 如果当前 profile 与 memory 有明显 contradiction，则不使用 correction。
+
+这里 LLM **不重新输出 probability，也不决定具体应该加减多少**。它只回答“这条历史 failure mechanism 能不能迁移到当前人”。
+
+**4. correction magnitude 由 historical residual 决定，并由 calibration 控制最终使用强度。**  
+如果 LLM 判断某些 memory mechanism 可以迁移，系统就读取这些 historical memory 当时真实的 signed residual，根据 respondent similarity 和 memory confidence 进行加权，得到一个 empirical numerical correction。
+
+也就是说：
+
+`LLM 决定 mechanism 是否适用`  
+`历史 residual 决定 correction 大小`
+
+最后，calibration split 再选择一个全局 correction scale `alpha`：
+
+`P_TRBM = P_HBM + alpha × empirical residual correction`
+
+`alpha` 决定最终应该多大程度相信这些 historical residual correction。如果 calibration 发现 memory correction 没有带来稳定 improvement，也可以直接选择 `alpha = 0`，此时最终 prediction 就退回到原来的 `P_HBM`。
+
+因此 TRBM 的 division of labor 非常明确：
+
+> **HBM theory model 负责基础 probability；historical residual 负责 numerical correction magnitude；LLM 只负责判断某个 historical theory-failure mechanism 是否适用于当前 respondent。**
+
+这也是 TRBM 与原版 FLARE-VAX 最大的区别：它进一步把 numerical probability estimation 从 LLM 中拆出来，让 LLM 更像一个 **semantic mechanism matcher**，而不是直接的 probability predictor。
+
+三个版本可以简单对比为：
+
+| 方法 | Base probability | Prediction 时 LLM 的主要任务 | correction magnitude |
+|---|---|---|---|
+| 原始 FLARE-VAX | HBM8 pattern prior | 根据个体 evidence 直接做 residual reasoning | LLM 决定 |
+| RG-FLARE-VAX | Reward-calibrated HBM prior | 读取 Q-valued memory 后做小幅 residual correction | LLM 决定，但范围更小 |
+| TRBM-FLARE-VAX | Theory-constrained `P_HBM` | 判断 historical theory-failure mechanism 是否适用 | Historical residual + calibration `alpha` |
+
+## 2. Zero-shot / Few-shot baseline
 
 代码：`scripts/60_llm_icl_benchmark_asu.py`
 
@@ -52,7 +162,7 @@ TRBM 进一步改变了 LLM 的角色：基础概率不再由 LLM 估计。它�
 
 这些 baseline 都不接收 HBM score、pattern、pattern prior、reflective memory 或 FLARE correction rule。
 
-## 4. 其他论文方法的迁移
+## 3. 其他论文方法的迁移
 
 ### 不需要微调大模型
 
@@ -66,9 +176,9 @@ TRBM 进一步改变了 LLM 的角色：基础概率不再由 LLM 估计。它�
 
 **Persona-aware and Explainable Bikeability Assessment** — 原文：[arXiv:2601.03534](https://arxiv.org/abs/2601.03534)。原文使用 cyclist persona conditioning、多粒度 supervised fine-tuning 和 AI data augmentation 完成可解释的 bikeability 评分。**状态：仅完成方法调研，尚未迁移到 FLARE-VAX。**
 
-## 5. 结果
+## 4. 结果
 
-### 5.1 ML baseline
+### 4.1 ML baseline
 
 | Version | Model | Accuracy | ROC-AUC | F1 |
 |---|---|---|---|---|
@@ -87,47 +197,47 @@ TRBM 进一步改变了 LLM 的角色：基础概率不再由 LLM 估计。它�
 | V5 | svm | 0.6786 | 0.7477 | 0.6636 |
 | V5 | xgboost | 0.6871 | 0.7570 | 0.6697 |
 
-### 5.2 Zero-shot / Few-shot
+### 4.2 Zero-shot / Few-shot
 
 | Version | Model | Method | Test N | Threshold | Accuracy | Balanced Acc. | ROC-AUC | F1 | Status |
-|---|---|---|---|---|---|---|---|---|---|
+|---|---|---|---:|---:|---:|---:|---:|---:|---|
 | V4 | Llama 3 70B | Random balanced 8-shot | 12853 | 5 | 0.4737 | 0.5000 | 0.5000 | 0.6428 | complete |
 | V4 | Llama 3 70B | Random 8-shot + generic CoT | 12853 | 29 | 0.5186 | 0.5399 | 0.5399 | 0.6504 | complete |
-| V4 | Llama 3 70B | Representative 8-shot | — | — | — | — | — | — | pending_rerun |
-| V4 | Llama 3 70B | Similarity-selected 8-shot | — | — | — | — | — | — | pending_rerun |
+| V4 | Llama 3 70B | Representative 8-shot | 12853 | 5 | 0.4737 | 0.5000 | 0.5000 | 0.6428 | complete |
+| V4 | Llama 3 70B | Similarity-selected 8-shot | 12853 | 5 | 0.4737 | 0.5000 | 0.5000 | 0.6428 | complete |
 | V4 | Llama 3 70B | Zero-shot direct | 12853 | 46 | 0.4787 | 0.5048 | 0.5048 | 0.6449 | complete |
 | V4 | Llama 4 Scout 17B | Random balanced 8-shot | 12853 | 86 | 0.6432 | 0.6297 | 0.6851 | 0.4974 | complete |
 | V4 | Llama 4 Scout 17B | Random 8-shot + generic CoT | 12853 | 73 | 0.5830 | 0.5622 | 0.6048 | 0.2761 | complete |
 | V4 | Llama 4 Scout 17B | Representative 8-shot | 12853 | 75 | 0.6053 | 0.6211 | 0.6554 | 0.6887 | complete |
 | V4 | Llama 4 Scout 17B | Similarity-selected 8-shot | 12853 | 79 | 0.6189 | 0.6225 | 0.6543 | 0.6317 | complete |
 | V4 | Llama 4 Scout 17B | Zero-shot direct | 12853 | 81 | 0.6339 | 0.6453 | 0.7136 | 0.6904 | complete |
-| V5 | Llama 3 70B | Random balanced 8-shot | — | — | — | — | — | — | pending_rerun |
-| V5 | Llama 3 70B | Random 8-shot + generic CoT | — | — | — | — | — | — | pending_rerun |
-| V5 | Llama 3 70B | Representative 8-shot | — | — | — | — | — | — | pending_rerun |
-| V5 | Llama 3 70B | Similarity-selected 8-shot | — | — | — | — | — | — | pending_rerun |
-| V5 | Llama 3 70B | Zero-shot direct | — | — | — | — | — | — | pending_rerun |
+| V5 | Llama 3 70B | Random balanced 8-shot | 12852 | 5 | 0.4739 | 0.5000 | 0.5000 | 0.6430 | complete |
+| V5 | Llama 3 70B | Random 8-shot + generic CoT | 12851 | 51 | 0.4877 | 0.5122 | 0.5122 | 0.6448 | complete* |
+| V5 | Llama 3 70B | Representative 8-shot | 12852 | 5 | 0.4739 | 0.5000 | 0.5000 | 0.6430 | complete |
+| V5 | Llama 3 70B | Similarity-selected 8-shot | 12852 | 5 | 0.4739 | 0.5000 | 0.5000 | 0.6430 | complete |
+| V5 | Llama 3 70B | Zero-shot direct | 12852 | 46 | 0.4774 | 0.5034 | 0.5034 | 0.6445 | complete |
 | V5 | Llama 4 Scout 17B | Random balanced 8-shot | 12852 | 82 | 0.5917 | 0.5932 | 0.6229 | 0.5903 | complete |
 | V5 | Llama 4 Scout 17B | Random 8-shot + generic CoT | 12852 | 73 | 0.5461 | 0.5223 | 0.5389 | 0.1248 | complete |
 | V5 | Llama 4 Scout 17B | Representative 8-shot | 12852 | 75 | 0.6218 | 0.6232 | 0.6251 | 0.6197 | complete |
 | V5 | Llama 4 Scout 17B | Similarity-selected 8-shot | 12852 | 79 | 0.5773 | 0.5783 | 0.6051 | 0.5725 | complete |
 | V5 | Llama 4 Scout 17B | Zero-shot direct | 12852 | 81 | 0.6307 | 0.6367 | 0.6622 | 0.6585 | complete |
 
-V5 的全部 Llama 3 70B，以及 V4 70B 的 similarity-selected 和 representative 两项，当前公开表中保留为空并标记为 pending rerun。初步运行出现接近常数的输出，因此不作为最终结果汇报。
+上周尚未完成的 Llama 3 70B benchmark 现在已经补齐。可以看到，多组 direct 8-shot 的输出仍然接近“几乎全部预测为接种”，因此 balanced accuracy 约为 0.50；这里把它作为真实 benchmark 结果保留，而不是继续标记为未完成。`*` V5 70B generic-CoT 最终返回 12,851 个 test prediction（test success rate = 0.999922），比配置的 12,852 少 1 个。
 
-### 5.3 CoPB / PB&J 迁移结果
+### 4.3 CoPB / PB&J 迁移结果
 
 | Version | Model | Method | Test N | Threshold | Accuracy | Balanced Acc. | ROC-AUC | F1 | Status |
-|---|---|---|---|---|---|---|---|---|---|
+|---|---|---|---:|---:|---:|---:|---:|---:|---|
 | V4 | Llama 3 70B | HBM-CoPB | 12853 | 51 | 0.6419 | 0.6464 | 0.6698 | 0.6593 | complete |
 | V4 | Llama 4 Scout 17B | HBM-CoPB | 12853 | 51 | 0.6726 | 0.6753 | 0.7131 | 0.6776 | complete |
 | V5 | Llama 3 70B | HBM-CoPB | 12852 | 51 | 0.5664 | 0.5634 | 0.5719 | 0.5258 | complete |
 | V5 | Llama 4 Scout 17B | HBM-CoPB | 12852 | 61 | 0.6376 | 0.6378 | 0.6652 | 0.6268 | complete |
 | V4 | Llama 3 70B | HBM-PB&J | 12853 | 76 | 0.5831 | 0.5935 | 0.6243 | 0.6425 | complete |
-| V4 | Llama 4 Scout 17B | HBM-PB&J | — | — | — | — | — | — | pending |
+| V4 | Llama 4 Scout 17B | HBM-PB&J | 12853 | 61 | 0.7007 | 0.6970 | 0.7610 | 0.6651 | complete |
 
-PB&J V4 17B 暂时保留为空。SILIC 和需要微调的 persona-aware 方法尚无可汇报结果。
+上周尚未完成的 V4 Llama 4 Scout 17B HBM-PB&J 已补跑完成，ROC-AUC 为 0.7610，balanced accuracy 为 0.6970。V5 HBM-PB&J、SILIC 和需要微调的 persona-aware 方法目前仍没有可汇报的 FLARE-VAX 结果。
 
-### 5.4 FLARE-VAX 主方法与 ablation
+### 4.4 FLARE-VAX 主方法与 ablation
 
 | Version | Model | Method | Test N | Threshold | Accuracy | Balanced Acc. | ROC-AUC | F1 | Status |
 |---|---|---|---|---|---|---|---|---|---|
@@ -139,7 +249,7 @@ PB&J V4 17B 暂时保留为空。SILIC 和需要微调的 persona-aware 方法�
 | V5 | No LLM | HBM8 pattern-only ablation | 12852 | 37 | 0.6255 | 0.6325 | 0.6797 | 0.6597 | complete |
 
 
-### 5.5 RG-FLARE-VAX full-run 结果
+### 4.5 RG-FLARE-VAX 拓展结果
 
 | Version | Model | Stage | Test N | Threshold | Accuracy | Balanced Acc. | ROC-AUC | F1 |
 |---|---|---|---:|---:|---:|---:|---:|---:|
@@ -152,22 +262,30 @@ PB&J V4 17B 暂时保留为空。SILIC 和需要微调的 persona-aware 方法�
 | V5 | Llama 4 Scout 17B | Reward-calibrated HBM prior | 12852 | 49 | 0.6580 | 0.6585 | 0.7222 | 0.6493 |
 | V5 | Llama 4 Scout 17B | Final reward-valued memory | 12852 | 46 | 0.6604 | 0.6635 | 0.7204 | 0.6686 |
 
-RG 的主要提升首先来自 reward-calibrated prior：V4 的 ROC-AUC 从 HBM8 pattern anchor 的约 0.769 提升到约 0.822，V5 从约 0.680 提升到约 0.720–0.722。Reward-valued memory 会改变最终 operating point，并在部分设置下改善 F1 / balanced accuracy，但并不是所有概率指标都稳定优于 reward prior 或 no-memory，因此这里把各阶段分开汇报，不把全部提升归因于 memory。
+目前最明显的 improvement 来自 reward-calibrated prior：V4 的 ROC-AUC 从 HBM8 pattern-only 的约 0.769 提升到约 0.822，V5 从约 0.680 提升到约 0.720–0.722。Reward-valued memory 在部分配置中会改变 balanced accuracy、F1 和最终 operating point，但并没有在所有 probability metric 上稳定超过 reward prior，因此这里把两部分结果分开汇报。
 
-### 5.6 TRBM-FLARE-VAX full-run 结果
+### 4.6 TRBM-FLARE-VAX 拓展结果
 
-| Version | Model | Test N | Threshold | Correction scale α | Accuracy | Balanced Acc. | ROC-AUC | F1 |
-|---|---|---:|---:|---:|---:|---:|---:|---:|
-| V4 | Llama 3 70B | 12853 | 0.48 | 0.00 | 0.7390 | 0.7371 | 0.8205 | 0.7181 |
-| V4 | Llama 4 Scout 17B | 12853 | 0.48 | 0.00 | 0.7390 | 0.7371 | 0.8205 | 0.7181 |
-| V5 | Llama 3 70B | 12853 | 0.44 | 0.00 | 0.6531 | 0.6574 | 0.7200 | 0.6690 |
-| V5 | Llama 4 Scout 17B | 12853 | 0.44 | 0.00 | 0.6531 | 0.6574 | 0.7200 | 0.6690 |
+TRBM 目前仍在继续补跑。本周 README **只把 V4 + Llama 4 Scout 17B 作为已经完成的结果保留**；其他计划中的组合继续列在表里，但统一用 `--` 占位，表示尚未跑完。
 
-这批 full run 中，calibration 对所有配置都选择了 `alpha = 0.00`。因此最终 `trbm_full` 数值实际上等于 theory-constrained HBM prior；虽然 residual memories 和 LLM mechanism gate 已经建立并运行，但 calibration 没有发现继续叠加 residual correction 可以改善 log loss。V4 的 unweighted ROC-AUC 为 0.8205，V5 为 0.7200。TRBM 原始结果文件报告的 V5 test N 是 12,853，本次 update 原样保留这个数字，不人为改成旧 V5 pipeline 的 12,852。
+| Version | Model | Method | Test N | Memories | Threshold | Correction scale α | Accuracy | Balanced Acc. | ROC-AUC | F1 | Status |
+|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| V4 | Llama 4 Scout 17B | TRBM full | 12853 | 459 | 0.48 | 0.00 | 0.7390 | 0.7371 | 0.8205 | 0.7181 | complete |
+| V4 | Llama 4 Scout 17B | TRBM full — survey weighted | 12853 | 459 | 0.48 | 0.00 | 0.7315 | 0.7236 | 0.8113 | 0.6812 | complete |
+| V4 | Llama 3 70B | TRBM full | -- | -- | -- | -- | -- | -- | -- | -- | not completed yet |
+| V4 | Llama 3 70B | TRBM full — survey weighted | -- | -- | -- | -- | -- | -- | -- | -- | not completed yet |
+| V5 | Llama 4 Scout 17B | TRBM full | -- | -- | -- | -- | -- | -- | -- | -- | not completed yet |
+| V5 | Llama 4 Scout 17B | TRBM full — survey weighted | -- | -- | -- | -- | -- | -- | -- | -- | not completed yet |
+| V5 | Llama 3 70B | TRBM full | -- | -- | -- | -- | -- | -- | -- | -- | not completed yet |
+| V5 | Llama 3 70B | TRBM full — survey weighted | -- | -- | -- | -- | -- | -- | -- | -- | not completed yet |
 
-## 6. GitHub 中保留的内容
+目前完成的两个 V4 Scout 17B run 中，calibration 都选择了 `alpha = 0.00`。因此现阶段最终 TRBM probability 实际上等于 theory-constrained `P_HBM`：reflection memory 和 mechanism gate 已经运行，但它们产生的 residual correction 没有被 calibration 保留下来。未加 survey weight 的版本 ROC-AUC 为 0.8205，survey-weighted 版本为 0.8113。其他 TRBM 组合等全部跑完后再补入正式数值。
 
-保留：V4/V5 主代码、ML baseline、统一 ICL baseline、CoPB/PB&J、SILIC 初步实现、RG-FLARE-VAX、TRBM-FLARE-VAX、必要配置、方法文档和汇总级结果。
+## 5. GitHub 中保留的内容
+
+保留：V4/V5 主代码、ML baseline、统一 ICL baseline、CoPB/PB&J、SILIC 初步实现、必要配置、方法文档和汇总级结果。
+
+本次拓展另外加入 RG-FLARE-VAX、TRBM-FLARE-VAX、TRBM ablation，以及对应的公开汇总结果文件；原有 README 内容和旧方法结果均继续保留。
 
 剔除：早期 HBM2 开发脚本、带本地运行状态的 notebook、checkpoint、逐样本 prediction、API 日志、support map、本地路径、失败日志以及原始 NHIS 数据。
 

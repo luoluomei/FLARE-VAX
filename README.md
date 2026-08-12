@@ -35,36 +35,81 @@ V4 uses non-target vaccination behavior as part of the acceptance/benefit proxy.
 
 V5 removes the strongest vaccination-history shortcut. Its acceptance signal is replaced by non-vaccine preventive engagement, including wellness behavior, health-information use, clinician communication, and result-review behavior. The remaining architecture is aligned with V4.
 
-## 3. Two V4/V5 extensions added in this update
 
-The two new methods below are **not new feature versions**. Both keep the original V4/V5 data boundary and deterministic HBM proxy construction. What changes is the layer that turns the HBM state into a probability and the way reflective memory is learned and used.
+## New extensions to V4/V5: RG-FLARE-VAX and TRBM-FLARE-VAX
 
-### 3.1 RG-FLARE-VAX — Reward-Guided HBM Integration + Reward-Valued Memory
+The following two methods are follow-up extensions of the original V4/V5 framework rather than new feature versions. V4 still allows other vaccination history, V5 still excludes it, and both methods preserve the original five HBM-inspired proxies and the V4/V5 feature boundary.
+
+The extensions address two questions: can the relatively coarse HBM8 pattern prior be converted into a more individualized numerical prior, and can reflective memory be evaluated by historical predictive usefulness rather than by LLM-generated plausibility alone?
+
+### RG-FLARE-VAX — Reward-Guided HBM Integration + Reward-Valued Memory
 
 **Code:** `scripts/81_rg_flare_vax_reward_memory_asu.py`
 
-RG-FLARE-VAX keeps the original HBM8 pattern prior, but adds a small external numerical reward layer that learns how the five HBM constructs should adjust the pattern anchor. Memory-split respondents are scored with five-fold out-of-fold prediction so the same respondent is not used both to fit and evaluate its reward prior. The frozen LLM may propose sparse, pattern-specific reward-weight revisions, but a proposed revision is accepted only when it improves held-out out-of-fold log loss.
+RG adds a **reward-guided probability-calibration layer** to the original FLARE-VAX and changes how reflective memory is valued. The original HBM8 pattern is preserved, but the pattern vaccination rate is no longer the only probability anchor. Instead, the five HBM constructs are first used to produce a more individualized `P_reward`, and the LLM/memory layer focuses on the residual information that remains unexplained.
 
-The second change is the reflective-memory mechanism. High-confidence errors are converted into reusable rules, and each rule receives an empirical directional **Q-value** measuring whether applying its correction direction historically reduced loss among similar memory respondents. Test-time retrieval therefore combines respondent similarity, HBM8 pattern match, prior memory quality, and the empirical Q-value. The final LLM is anchored to the reward-calibrated HBM prior and can make only a bounded residual correction (default ±15 percentage points).
+The method can be summarized in four stages.
 
-In short, relative to the original V4/V5 pipeline, RG-FLARE-VAX changes **how HBM evidence is numerically integrated** and **how reflective memories are valued**, while leaving the LLM frozen and preserving the original V4/V5 feature restrictions. It is SILIC-inspired reward learning for cross-sectional choice prediction, not sequential IRL.
+**1. Reuse the original V4/V5 HBM representation.**  
+Each respondent receives the same five HBM proxies, Motivation/Capability/Activation state, and HBM8 pattern as in the original method. The memory-split vaccination rate for each pattern remains the initial behavioral anchor `P_pattern`.
 
-### 3.2 TRBM-FLARE-VAX — Theory-Residual Behavioral Memory
+**2. Refine `P_pattern` into a more individualized `P_reward`.**  
+Respondents within the same HBM8 pattern can still differ substantially in threat, barriers, cues, and the other construct values. RG therefore fits a cross-fitted numerical reward model that learns how a respondent's deviation from the pattern-level construct profile should adjust `P_pattern`.
+
+An optional pattern-level LLM-guidance call can propose sparse increases/decreases to construct weights using aggregate error and contribution statistics. The proposal is not accepted automatically: it must improve log loss on a separate OOF validation subset. The design is therefore `LLM proposes → data validates → accept/reject`.
+
+**3. Build reward-valued reflective memory around `P_reward`.**  
+For selected memory respondents, the LLM treats `P_reward` as the main probability anchor and makes only a small residual adjustment using more detailed observed context. High-confidence errors are reflected into reusable correction rules.
+
+Unlike the original memory design, each rule is then assigned an empirical **Q-value**. The system evaluates whether applying the rule's proposed increase/decrease direction to similar historical respondents actually reduces prediction loss. A memory is therefore valued by both semantic plausibility and empirical predictive utility: it should not only sound reasonable, but should also have helped similar historical cases.
+
+**4. Retrieve similar, high-value memories and make the final bounded correction.**  
+At calibration/test time, retrieval combines respondent similarity with memory Q-value. The final LLM receives `P_reward`, the current profile, and the retrieved reward-valued memories, and decides whether a small increase, decrease, or no change is warranted. Calibration then selects the final classification threshold.
+
+The main change from the original FLARE-VAX is therefore twofold: **RG learns a more individualized reward-calibrated prior from the five HBM constructs, and it upgrades reflective memory from an LLM-generated rule into a rule whose historical predictive value is explicitly evaluated.** The LLM itself remains frozen.
+
+### TRBM-FLARE-VAX — Theory-Residual Behavioral Memory
 
 **Code:** `scripts/82_trbm_flare_vax_asu.py`  
-**Optional offline ablations:** `scripts/83_trbm_ablation_asu.py`  
-**Method notes:** `docs/trbm_method_notes.md`
+**Ablation:** `scripts/83_trbm_ablation_asu.py`
 
-TRBM makes a stronger change to the division of labor. Instead of asking the LLM to estimate or directly adjust the base vaccination probability, a small **theory-constrained logistic model** first estimates `P_HBM` using only the five positively oriented HBM-derived constructs. The model does not receive the full raw NHIS feature set, and its construct coefficients are constrained to be non-negative so the base probability remains interpretable as a theory-derived prior rather than a full-feature ML predictor.
+TRBM further reduces the LLM's role in numerical prediction. Its central idea is to first let the HBM representation produce an explicit theory-based probability, and then learn **when and why that theory prior fails**.
 
-Memory is then built around **theory residuals**. For each memory respondent, TRBM computes an out-of-fold residual `actual - P_HBM_OOF`. Large positive or negative residuals identify cases where the HBM prior systematically under- or over-predicts behavior. The LLM is used only to explain those failures as reusable mechanisms; it is explicitly prohibited from producing a probability or numerical correction.
+The method can also be summarized in four stages.
 
-At calibration/test time, retrieval combines similarity in HBM/theory state with similarity in observed context. The LLM only decides whether a retrieved mechanism applies and whether it points up, down, or nowhere. The numerical correction itself is computed from the historical signed residuals of the selected memories, and a single global correction scale `alpha` is selected on the calibration split and then frozen.
+**1. Construct an explicit theory prior.**  
+The same five V4/V5 HBM constructs are oriented so that larger values consistently represent stronger theoretical support for vaccination. A small non-negative constrained logistic model is then fitted using only these five theory-derived variables, producing `P_HBM`.
 
-Relative to the original V4/V5 method, TRBM therefore moves probability estimation out of the LLM and uses the LLM as a **semantic mechanism gate over empirical theory failures**. This version is useful for testing whether LLMs add value through mechanism recognition even when calibration and correction magnitudes are handled numerically.
+Because the full NHIS feature set is not used, `P_HBM` is intended to represent what the current HBM representation predicts, rather than a conventional full-feature ML prediction.
 
+**2. Identify historical theory failures directly.**  
+Cross-fitting on the memory split produces OOF `P_HBM` for each respondent. TRBM then computes the discrepancy between the theory prior and the observed outcome:
 
-## 4. Zero-shot and few-shot LLM baselines
+`theory residual = actual - P_HBM_OOF`
+
+Large positive or negative residuals identify cases in which the five-dimensional HBM prior clearly under- or over-predicts observed vaccination behavior. Thus, TRBM memory begins from failures of the theory representation itself, not from errors made by an LLM prediction.
+
+**3. Use the LLM to summarize and match theory-failure mechanisms.**  
+For large residual cases, the LLM examines the HBM state, `P_HBM`, observed outcome, and detailed profile to identify what observable mechanism was not sufficiently represented by the HBM prior. These failures are summarized into reusable mechanism memories.
+
+For a new calibration/test respondent, similar historical theory-failure memories are retrieved. The LLM acts only as a **mechanism gate**: it decides whether a retrieved mechanism genuinely applies, whether the supported direction is increase/decrease/no correction, and whether contradictions are present. It does not output a new probability or determine a numerical correction magnitude.
+
+**4. Let historical residuals determine the correction size.**  
+When the LLM judges that a historical mechanism transfers, the signed residuals from the selected historical memories are combined using similarity and confidence to produce an empirical numerical correction. Calibration then selects a global scale `alpha`:
+
+`P_TRBM = P_HBM + alpha × empirical residual correction`
+
+If calibration does not find reliable additional value from the memory correction, it can select `alpha = 0`, returning the final prediction to `P_HBM`.
+
+TRBM therefore has a deliberately strict division of labor: **the HBM theory model provides the base probability, historical residuals provide the numerical correction magnitude, and the LLM only decides whether a historical theory-failure mechanism applies to the current respondent.**
+
+| Method | Base probability | Main LLM role at prediction time | Numerical correction |
+|---|---|---|---|
+| Original FLARE-VAX | HBM8 pattern prior | Direct residual reasoning from respondent evidence | Determined by LLM |
+| RG-FLARE-VAX | Reward-calibrated HBM prior | Small residual correction using Q-valued memory | Determined by LLM within a tighter bound |
+| TRBM-FLARE-VAX | Theory-constrained `P_HBM` | Match/gate historical theory-failure mechanisms | Historical residuals + calibrated `alpha` |
+
+## 3. Zero-shot and few-shot LLM baselines
 
 **Code:** `scripts/60_llm_icl_benchmark_asu.py`
 
@@ -80,9 +125,9 @@ These baselines provide no HBM scores, HBM pattern, pattern prior, reflective me
 
 Calibration selects the classification threshold; test evaluation uses the frozen prompt and selection policy.
 
-## 5. Transferred methods from prior work
+## 4. Transferred methods from prior work
 
-### 5.1 Methods that do **not** fine-tune the LLM
+### 4.1 Methods that do **not** fine-tune the LLM
 
 #### HBM-CoPB — theory-structured one-call reasoning
 
@@ -108,7 +153,7 @@ SILIC combines behavioral theory, LLM guidance, inverse reinforcement learning, 
 
 **Initial FLARE-VAX implementation:** `scripts/80_silic_v4_inverse_contextual_reward_asu.py` is a V4-only, cross-sectional adaptation. COVID-19, pneumonia, shingles, and hepatitis-A decisions are treated as contextual binary choices; a hierarchical model estimates a five-dimensional preventive reward vector; optional LLM initialization/update guides numerical refinement; and a final HBM-inspired call predicts flu vaccination. Because NHIS has no ordered transitions, this is described as inverse contextual choice—not sequential MDP/MaxEnt IRL. The LLM remains frozen; only external latent parameters are optimized. **Status: implementation available, full benchmark results pending.**
 
-### 5.2 Method requiring supervised model fine-tuning
+### 4.2 Method requiring supervised model fine-tuning
 
 #### Persona-aware and Explainable Bikeability Assessment
 
@@ -116,11 +161,11 @@ SILIC combines behavioral theory, LLM guidance, inverse reinforcement learning, 
 
 The paper conditions a vision-language model on theory-grounded cyclist personas, applies multi-granularity supervised fine-tuning using expert reasoning plus user ratings, and uses controlled AI-generated data augmentation to support explainable bikeability scoring. **Status in this repository: reference reviewed; no FLARE-VAX implementation yet.**
 
-## 6. Results
+## 5. Results
 
 All LLM tables use the calibration-selected threshold. Balanced accuracy is reported because several LLM configurations have asymmetric sensitivity and specificity.
 
-### 6.1 Conventional ML baselines
+### 5.1 Conventional ML baselines
 
 | Version | Model | Accuracy | ROC-AUC | F1 |
 |---|---|---|---|---|
@@ -141,47 +186,47 @@ All LLM tables use the calibration-selected threshold. Balanced accuracy is repo
 
 V4 substantially outperforms V5 in conventional ML, showing the predictive strength of other-vaccination history.
 
-### 6.2 Zero-shot and few-shot LLM baselines
+### 5.2 Zero-shot and few-shot LLM baselines
 
 | Version | Model | Method | Test N | Threshold | Accuracy | Balanced Acc. | ROC-AUC | F1 | Status |
-|---|---|---|---|---|---|---|---|---|---|
+|---|---|---|---:|---:|---:|---:|---:|---:|---|
 | V4 | Llama 3 70B | Random balanced 8-shot | 12853 | 5 | 0.4737 | 0.5000 | 0.5000 | 0.6428 | complete |
 | V4 | Llama 3 70B | Random 8-shot + generic CoT | 12853 | 29 | 0.5186 | 0.5399 | 0.5399 | 0.6504 | complete |
-| V4 | Llama 3 70B | Representative 8-shot | — | — | — | — | — | — | pending_rerun |
-| V4 | Llama 3 70B | Similarity-selected 8-shot | — | — | — | — | — | — | pending_rerun |
+| V4 | Llama 3 70B | Representative 8-shot | 12853 | 5 | 0.4737 | 0.5000 | 0.5000 | 0.6428 | complete |
+| V4 | Llama 3 70B | Similarity-selected 8-shot | 12853 | 5 | 0.4737 | 0.5000 | 0.5000 | 0.6428 | complete |
 | V4 | Llama 3 70B | Zero-shot direct | 12853 | 46 | 0.4787 | 0.5048 | 0.5048 | 0.6449 | complete |
 | V4 | Llama 4 Scout 17B | Random balanced 8-shot | 12853 | 86 | 0.6432 | 0.6297 | 0.6851 | 0.4974 | complete |
 | V4 | Llama 4 Scout 17B | Random 8-shot + generic CoT | 12853 | 73 | 0.5830 | 0.5622 | 0.6048 | 0.2761 | complete |
 | V4 | Llama 4 Scout 17B | Representative 8-shot | 12853 | 75 | 0.6053 | 0.6211 | 0.6554 | 0.6887 | complete |
 | V4 | Llama 4 Scout 17B | Similarity-selected 8-shot | 12853 | 79 | 0.6189 | 0.6225 | 0.6543 | 0.6317 | complete |
 | V4 | Llama 4 Scout 17B | Zero-shot direct | 12853 | 81 | 0.6339 | 0.6453 | 0.7136 | 0.6904 | complete |
-| V5 | Llama 3 70B | Random balanced 8-shot | — | — | — | — | — | — | pending_rerun |
-| V5 | Llama 3 70B | Random 8-shot + generic CoT | — | — | — | — | — | — | pending_rerun |
-| V5 | Llama 3 70B | Representative 8-shot | — | — | — | — | — | — | pending_rerun |
-| V5 | Llama 3 70B | Similarity-selected 8-shot | — | — | — | — | — | — | pending_rerun |
-| V5 | Llama 3 70B | Zero-shot direct | — | — | — | — | — | — | pending_rerun |
+| V5 | Llama 3 70B | Random balanced 8-shot | 12852 | 5 | 0.4739 | 0.5000 | 0.5000 | 0.6430 | complete |
+| V5 | Llama 3 70B | Random 8-shot + generic CoT | 12851 | 51 | 0.4877 | 0.5122 | 0.5122 | 0.6448 | complete* |
+| V5 | Llama 3 70B | Representative 8-shot | 12852 | 5 | 0.4739 | 0.5000 | 0.5000 | 0.6430 | complete |
+| V5 | Llama 3 70B | Similarity-selected 8-shot | 12852 | 5 | 0.4739 | 0.5000 | 0.5000 | 0.6430 | complete |
+| V5 | Llama 3 70B | Zero-shot direct | 12852 | 46 | 0.4774 | 0.5034 | 0.5034 | 0.6445 | complete |
 | V5 | Llama 4 Scout 17B | Random balanced 8-shot | 12852 | 82 | 0.5917 | 0.5932 | 0.6229 | 0.5903 | complete |
 | V5 | Llama 4 Scout 17B | Random 8-shot + generic CoT | 12852 | 73 | 0.5461 | 0.5223 | 0.5389 | 0.1248 | complete |
 | V5 | Llama 4 Scout 17B | Representative 8-shot | 12852 | 75 | 0.6218 | 0.6232 | 0.6251 | 0.6197 | complete |
 | V5 | Llama 4 Scout 17B | Similarity-selected 8-shot | 12852 | 79 | 0.5773 | 0.5783 | 0.6051 | 0.5725 | complete |
 | V5 | Llama 4 Scout 17B | Zero-shot direct | 12852 | 81 | 0.6307 | 0.6367 | 0.6622 | 0.6585 | complete |
 
-The public progress table intentionally leaves **all V5 Llama 3 70B rows** and the **V4 70B similarity-selected and representative rows** blank pending rerun. Preliminary outputs for these configurations were near-constant, so they are not treated as finalized evidence.
+The previously pending Llama 3 70B benchmark rows have now been completed. Several direct 8-shot configurations still collapse to nearly constant positive predictions (balanced accuracy ≈ 0.50), which is reported as an observed benchmark outcome rather than treated as a missing run. `*` The V5 70B generic-CoT run returned 12,851 test predictions (test success rate 0.999922) rather than the configured 12,852.
 
-### 6.3 Transferred baseline results
+### 5.3 Transferred baseline results
 
 | Version | Model | Method | Test N | Threshold | Accuracy | Balanced Acc. | ROC-AUC | F1 | Status |
-|---|---|---|---|---|---|---|---|---|---|
+|---|---|---|---:|---:|---:|---:|---:|---:|---|
 | V4 | Llama 3 70B | HBM-CoPB | 12853 | 51 | 0.6419 | 0.6464 | 0.6698 | 0.6593 | complete |
 | V4 | Llama 4 Scout 17B | HBM-CoPB | 12853 | 51 | 0.6726 | 0.6753 | 0.7131 | 0.6776 | complete |
 | V5 | Llama 3 70B | HBM-CoPB | 12852 | 51 | 0.5664 | 0.5634 | 0.5719 | 0.5258 | complete |
 | V5 | Llama 4 Scout 17B | HBM-CoPB | 12852 | 61 | 0.6376 | 0.6378 | 0.6652 | 0.6268 | complete |
 | V4 | Llama 3 70B | HBM-PB&J | 12853 | 76 | 0.5831 | 0.5935 | 0.6243 | 0.6425 | complete |
-| V4 | Llama 4 Scout 17B | HBM-PB&J | — | — | — | — | — | — | pending |
+| V4 | Llama 4 Scout 17B | HBM-PB&J | 12853 | 61 | 0.7007 | 0.6970 | 0.7610 | 0.6651 | complete |
 
-HBM-PB&J V4 with Llama 4 Scout 17B is retained as a visible pending row. SILIC and the fine-tuned persona-aware method do not yet have reportable FLARE-VAX results.
+The previously pending V4 Llama 4 Scout 17B HBM-PB&J run is now complete and reaches ROC-AUC 0.7610 with balanced accuracy 0.6970. V5 HBM-PB&J, SILIC, and the fine-tuned persona-aware method do not yet have reportable FLARE-VAX results.
 
-### 6.4 FLARE-VAX V4/V5 main results and ablations
+### 5.4 FLARE-VAX V4/V5 main results and ablations
 
 | Version | Model | Method | Test N | Threshold | Accuracy | Balanced Acc. | ROC-AUC | F1 | Status |
 |---|---|---|---|---|---|---|---|---|---|
@@ -195,9 +240,9 @@ HBM-PB&J V4 with Llama 4 Scout 17B is retained as a visible pending row. SILIC a
 The V5 Llama 4 summary evaluates 11,057 test cases although the configured test split contains 12,852; the repository preserves that coverage caveat rather than imputing missing predictions.
 
 
-### 6.5 RG-FLARE-VAX reward-guided extension
+### 5.5 RG-FLARE-VAX extension
 
-The table below reports the reward prior and the final reward-valued-memory stage from the **full** runs. The public CSV also retains the HBM8 pattern anchor, the no-memory comparison, and survey-weighted metrics.
+The table reports the reward-calibrated prior and the final reward-valued-memory stage from the full runs.
 
 | Version | Model | Stage | Test N | Threshold | Accuracy | Balanced Acc. | ROC-AUC | F1 |
 |---|---|---|---:|---:|---:|---:|---:|---:|
@@ -210,20 +255,26 @@ The table below reports the reward prior and the final reward-valued-memory stag
 | V5 | Llama 4 Scout 17B | Reward-calibrated HBM prior | 12852 | 49 | 0.6580 | 0.6585 | 0.7222 | 0.6493 |
 | V5 | Llama 4 Scout 17B | Final reward-valued memory | 12852 | 46 | 0.6604 | 0.6635 | 0.7204 | 0.6686 |
 
-The reward layer produces a clear improvement over the HBM8 pattern anchor in discrimination. On V4, ROC-AUC rises from about 0.769 for the pattern anchor to about 0.822 for the reward-guided configurations. On V5, it rises from about 0.680 to about 0.720–0.722. The reflective memory changes the final operating point and F1/balanced accuracy in some settings, but it does **not** uniformly improve every probability metric over the reward prior or the no-memory comparison; the repository therefore reports these stages separately rather than attributing the whole gain to memory.
+The clearest gain comes from the reward-calibrated prior itself: V4 ROC-AUC increases from roughly 0.769 for the HBM8 pattern anchor to about 0.822, while V5 increases from roughly 0.680 to about 0.720–0.722. Reward-valued memory changes the final operating point and helps some metrics/settings, but does not uniformly outperform the reward prior on every probability metric.
 
-### 6.6 TRBM-FLARE-VAX theory-residual extension
+### 5.6 TRBM-FLARE-VAX extension
 
-| Version | Model | Test N | Threshold | Correction scale α | Accuracy | Balanced Acc. | ROC-AUC | F1 |
-|---|---|---:|---:|---:|---:|---:|---:|---:|
-| V4 | Llama 3 70B | 12853 | 0.48 | 0.00 | 0.7390 | 0.7371 | 0.8205 | 0.7181 |
-| V4 | Llama 4 Scout 17B | 12853 | 0.48 | 0.00 | 0.7390 | 0.7371 | 0.8205 | 0.7181 |
-| V5 | Llama 3 70B | 12853 | 0.44 | 0.00 | 0.6531 | 0.6574 | 0.7200 | 0.6690 |
-| V5 | Llama 4 Scout 17B | 12853 | 0.44 | 0.00 | 0.6531 | 0.6574 | 0.7200 | 0.6690 |
+The TRBM experiments are still being completed. For this week's update, only the **V4 + Llama 4 Scout 17B** runs are treated as finalized; the remaining planned configurations are listed with `--` placeholders.
 
-For these full runs, calibration selected `alpha = 0.00` for every configuration. Therefore the reported `trbm_full` predictions are effectively the theory-constrained HBM prior, even though the reflection memories and LLM mechanism gates were built and evaluated. This is an informative result: under the current correction rule, calibration did not find positive log-loss value in applying the residual-memory correction on top of the theory prior. The V4 prior still reaches ROC-AUC 0.8205; V5 reaches 0.7200 in the unweighted evaluation. The supplied TRBM package reports 12,853 V5 test cases, and that count is preserved here as produced rather than silently harmonized with the 12,852-row V5 count in the earlier pipeline.
+| Version | Model | Method | Test N | Memories | Threshold | Correction scale α | Accuracy | Balanced Acc. | ROC-AUC | F1 | Status |
+|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| V4 | Llama 4 Scout 17B | TRBM full | 12853 | 459 | 0.48 | 0.00 | 0.7390 | 0.7371 | 0.8205 | 0.7181 | complete |
+| V4 | Llama 4 Scout 17B | TRBM full — survey weighted | 12853 | 459 | 0.48 | 0.00 | 0.7315 | 0.7236 | 0.8113 | 0.6812 | complete |
+| V4 | Llama 3 70B | TRBM full | -- | -- | -- | -- | -- | -- | -- | -- | not completed yet |
+| V4 | Llama 3 70B | TRBM full — survey weighted | -- | -- | -- | -- | -- | -- | -- | -- | not completed yet |
+| V5 | Llama 4 Scout 17B | TRBM full | -- | -- | -- | -- | -- | -- | -- | -- | not completed yet |
+| V5 | Llama 4 Scout 17B | TRBM full — survey weighted | -- | -- | -- | -- | -- | -- | -- | -- | not completed yet |
+| V5 | Llama 3 70B | TRBM full | -- | -- | -- | -- | -- | -- | -- | -- | not completed yet |
+| V5 | Llama 3 70B | TRBM full — survey weighted | -- | -- | -- | -- | -- | -- | -- | -- | not completed yet |
 
-## 7. Curated repository structure
+For the two completed V4 Scout 17B runs, calibration selected `alpha = 0.00`. Thus the final TRBM probability currently reduces to the theory-constrained `P_HBM`: the reflective-memory and mechanism-gating components were executed, but their residual correction was not retained by calibration. The unweighted theory prior reaches ROC-AUC 0.8205; the survey-weighted version reaches 0.8113. The other TRBM configurations are intentionally left blank until their runs are finalized.
+
+## 6. Curated repository structure
 
 ```text
 scripts/
@@ -251,7 +302,7 @@ results/
 
 Excluded from the public package: earlier HBM2 development scripts, notebooks with local execution state, `.ipynb_checkpoints`, raw respondent-level predictions, prompt logs, support maps, local paths, API failure traces, and the raw NHIS dataset.
 
-## 8. Reproduction
+## 7. Reproduction
 
 ```bash
 pip install -r requirements.txt
