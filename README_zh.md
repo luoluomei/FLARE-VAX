@@ -1,156 +1,310 @@
 # FLARE-VAX：基于 NHIS 2024 的行为理论引导流感疫苗接种预测
 
-[English README](README.md)
+[English](README.md)
 
-本项目使用 **2024 NHIS Sample Adult** 数据预测受访者过去 12 个月是否接种流感疫苗（`SHTFLU12M_A`）。开发时使用的原始 `adult24.csv` 约包含 **32,629 名受访者、630 个变量**。V4 最终纳入 32,132 人，V5 纳入 32,130 人，默认按 **40% memory / 20% calibration / 40% test** 划分。仓库不公开原始 NHIS 数据、逐样本预测和 API 日志。
+FLARE-VAX 研究行为理论结构能否提升基于 **2024 National Health Interview Survey (NHIS) Sample Adult** 的流感疫苗接种预测。开发时使用的原始文件约包含 **32,629 名 respondent、630 个变量**，预测目标为：
 
-> 本项目中的 HBM 分数是由 NHIS 可观察变量构造的理论代理，并不是对个体私有心理信念的直接测量。
+```text
+SHTFLU12M_A：过去 12 个月是否接种流感疫苗
+```
 
-## 1. V4 与 V5
+经过 target 与 feature-policy 筛选后，V4 评估 32,132 人，V5 评估 32,130 人。默认划分为 **40% memory-build / 20% calibration / 40% test**。原始 NHIS 数据以及逐 respondent 的 API log 不在 GitHub 中公开。
+
+> 本项目中的 HBM quantity 是根据 NHIS 可观察变量构造的 theory-guided proxy，不是对个体私人信念的直接 psychometric measurement。
+
+## 1. 数据与预测设置
+
+Sample Adult 文件包含人口统计、健康状态、慢性病、保险与医疗负担、healthcare access、utilization、digital health engagement 以及 vaccination history。传统 ML 直接使用选定的 raw/engineered feature；LLM 方法则在相同 V4/V5 feature restriction 下接收 human-readable respondent profile。
+
+- **V4 — 保留其他疫苗史：** baseline 75 个 feature，可使用 COVID-19、pneumonia、shingles/Shingrix、hepatitis-A 等非目标疫苗历史。
+- **V5 — 去除其他疫苗史：** baseline 67 个 feature，所有 non-target vaccination-history variable 都从 scoring、prompt、retrieval 和 memory construction 中排除。
+
+## 2. V4 与 V5
 
 - **V4（包含其他疫苗史）**：允许 COVID、肺炎、带状疱疹和甲肝等非目标疫苗史进入 vaccine acceptance/benefit proxy，共 75 个 ML 特征。
 - **V5（排除其他疫苗史）**：从分数、prompt、retrieval 和 memory 中排除全部非目标疫苗史，用 wellness、健康信息查询、医生沟通和结果查看等非疫苗预防行为替代，共 67 个 ML 特征。
 
 两者都构造 threat、acceptance/engagement、barriers、healthcare cues、navigation self-efficacy 五个 proxy，再合并成 Motivation、Capability、Activation，并形成 8 个行为 pattern。Pattern prior 只从 memory split 估计，reflection 只基于训练侧错误建立并在 calibration/test 前冻结。
 
+## 3. 从早期 Error Analysis 到当前重构
 
-## 新增思路拓展：RG-FLARE-VAX 与 TRBM-FLARE-VAX
+这一版不再继续沿用后来逐层增加 numerical prior、failure router 和 residual model 的路线，而是回到原始 V4/V5 的核心问题：
 
-下面两个方法都是在原 V4/V5 基础上的进一步拓展，而不是新的 feature version。V4 仍然允许使用其他疫苗史，V5 仍然完全排除其他疫苗史；五个 HBM proxy、HBM8 pattern 以及原有的数据边界都继续保留。
+> **HBM 应该给 LLM 提供什么结构，历史错误应该怎样变成可迁移的 evidence，而不是由另一个 ML 模型直接替代 LLM 完成个体概率预测。**
 
-两个改版主要回答两个新的问题：
+### 3.1 早期 error analysis 暴露出的稳定问题
 
-1. 原来的 HBM8 pattern prior 比较粗，能不能先得到一个更个体化、更稳定的 numerical prior？
-2. Reflective memory 不应该只依赖 LLM 自己判断“这条经验是否合理”，能不能进一步利用历史数据判断这条经验是否真的有预测价值？
+此前的 exploratory error analysis 给出了几个非常清楚的趋势。它们不是最终因果结论，而是帮助我们重新设计方法的 empirical diagnostics：
 
-### RG-FLARE-VAX：Reward-Guided HBM Integration + Reward-Valued Memory
+- **Low-Motivation pattern 更容易出现 false negative，而 High-Motivation pattern 更容易出现 false positive。** 最难的 case 往往正是实际行为与 HBM-derived tendency 方向相反的人。
+- **年龄呈现 behavioral reversal。** 较年轻的实际 vaccinator 更容易被低估，而较老的实际 non-vaccinator 更容易被高估。这说明 objective risk / age 对总体预测很有用，但不能被当成个体行为的确定规则。
+- **V4 的其他疫苗史非常强，但也形成了明显的 cross-vaccine transfer failure。** “其他疫苗行为 → 流感疫苗行为”的 transfer 在总体上有效，但不是对每个人都成立。
+- **Healthcare cue 存在 granularity 问题。** 急诊、住院、一般 healthcare contact 和 preventive wellness contact 都可能提高 aggregate cue，但它们的行为含义并不相同；NHIS 中的 healthcare contact 更接近“有接触/有机会”，不能直接解释成“医生推荐”。
+- **Construct conflict 反复出现。** 一些 respondent 的五个 HBM-derived support 内部高度不一致，最终被压缩成同一个 HBM8 pattern 后会损失信息。
+- **旧 residual-memory correction 并不总是安全。** 在一次 V4 diagnostic 中，大量 false negative 反而收到了 decrease correction，说明 memory/LLM 如果只重复先验的主导方向，可能把真正的 theory exception 推得更错。
 
-代码：`scripts/81_rg_flare_vax_reward_memory_asu.py`
+这些发现仍然保留，但它们现在只用来定义 **error-analysis descriptor、theory-failure memory 和 retrieval dimension**，不再直接训练一个新的 outcome predictor。
 
-RG 可以理解为在原 FLARE-VAX 中增加了一层 **reward-guided probability calibration**，同时重新定义 reflective memory 的价值。它仍然保留原来的 HBM8 pattern，但不再直接把 pattern vaccination rate 当作最终的 probability anchor，而是先根据五个 HBM construct 得到一个更个体化的 `P_reward`，再让 LLM 和 memory 处理这个 numerical prior 仍然没有解释好的部分。
+### 3.2 为什么不继续使用后来的 numerical reward / ML refinement 作为最终方法
 
-整体逻辑可以概括成四个阶段：
+后续几个实验版本确实显著提高了预测性能，但也逐渐偏离了原始研究问题。
 
-**1. 先沿用原 V4/V5 的 HBM 表征，得到最初的 behavioral anchor。**  
-每个 respondent 仍然先得到 threat、acceptance/engagement、barrier、cue、self-efficacy 五个 proxy，再形成 Motivation、Capability、Activation 和 HBM8 pattern。Memory split 中每个 pattern 的历史 vaccination rate 继续记为 `P_pattern`，表示“这一类 respondent 平均有多大概率接种”。
+第一类改版先把原来的 `P_pattern` 进一步拟合成更个体化的 numerical prior。这个 prior 使用 HBM-derived state 进行监督式数值学习，效果比原始 pattern anchor 强很多。之后 error analysis 又进一步训练了一个 supervised ML router，学习“这个 numerical theory prior 在什么地方会失败”，并把 router 的结果重新作用到 probability correction 上。
 
-**2. 在 `P_pattern` 基础上学习更个体化的 `P_reward`。**  
-原版中，只要两个人属于同一个 HBM8 pattern，他们的初始 probability 基本相同；但实际上，他们在 threat、barrier、cue 等具体 construct 上仍然可能差很多。RG 因此额外拟合一个 cross-fitted numerical reward model，学习某个 respondent 在五个 HBM dimensions 上相对同 pattern 平均水平的偏离应该怎样调整 `P_pattern`，从而得到更细的 `P_reward`。
+更后面的 residual 版本又把同 split 的 XGBoost 当作诊断上限，专门分析 `ML correct / theory-guided model wrong` 的 case，然后训练 residual model 去学习 `actual - current_probability`。这些版本最后可以非常接近 full-feature XGBoost 的 performance，但整个 information flow 已经逐渐变成：
 
-这里还可以加入一次 pattern-level 的 LLM guidance。LLM 看到的是某个 pattern 的整体 prediction error 和各 construct contribution，而不是单个 respondent；它只能建议少量 construct weight 应该稍微增加、降低或保持不变。这个建议不会直接采用，只有在独立的 OOF validation data 上确实降低 log loss 时才会被接受。因此这一层的逻辑是：
+```text
+HBM representation
+   ↓
+strong supervised numerical prior
+   ↓
+ML failure / residual model
+   ↓
+probability correction
+   ↓
+LLM auxiliary reasoning
+```
 
-`LLM proposes → data validates → accept / reject`
+这在工程上并不是错误，甚至 accuracy 很高；问题是它回答的越来越像 **“如何用 HBM 特征辅助一个 ML ensemble”**，而不是我们真正想研究的：
 
-**3. 以 `P_reward` 为新的 probability anchor，建立 reward-valued reflective memory。**  
-在 memory sample 上，LLM 不再从 `P_pattern` 开始，而是把 `P_reward` 当作当前已经比较可靠的基础判断，再根据 respondent 更具体的 observed profile 做一个较小的 residual adjustment。也就是说，LLM 的任务不是重新预测一次，而是判断：
+> **behavioral theory 如何组织 LLM 的个体化判断，以及 LLM 能否利用 historical theory failures 去判断一个新 respondent 是否应该偏离 theory tendency。**
 
-> 在 HBM + reward layer 已经给出 `P_reward` 之后，这个人还有没有一些更细的 observable evidence，意味着 probability 应该略微提高或降低？
+因此当前版本保留这些探索带来的 error-analysis insight，但放弃让 ML 直接生成新的 prior、failure probability 或 residual probability。
 
-高置信度错误会再次进入 reflection，LLM 将错误原因总结成 reusable correction rule。
+---
 
-RG 与原版最重要的区别是：这些 memory 不再只根据 reflection confidence 或语言上是否合理来判断价值。每条 rule 还会得到一个 empirical **Q-value**。系统会找历史上与该 memory source case 相似的 respondents，并检查：如果按照这条 rule 建议的 increase/decrease 方向去小幅修正他们的 probability，prediction loss 是否真的下降。
+## 4. 当前主方法：TFM-FLARE-VAX
 
-因此一条 memory 的价值同时来自：
+**TFM-FLARE-VAX = Theory-Failure Memory + Reward-Valued Contrastive Retrieval**
 
-`semantic plausibility + empirical predictive utility`
+代码：`scripts/81_theory_failure_memory_flare_vax_asu.py`  
+Notebook：`notebooks/81_theory_failure_memory_flare_vax_asu.ipynb`
 
-也就是说，它不仅要“解释得通”，还需要“历史上真的有用”。
+默认测试模型：
 
-**4. 检索相似且高价值的 memory，再让 LLM 做最终小幅修正。**  
-到了 calibration/test 阶段，retrieval 不再只看 respondent similarity，也会考虑 memory 的 Q-value。系统更倾向于返回那些既和当前 respondent 相似、又在历史上确实改善过预测的 correction rules。
+- `llama4-scout-17b`
+- `llama4-maverick-17b`
+
+完整流程：
+
+```text
+                         NHIS respondent
+                               │
+                               ▼
+                     HBM-derived profile
+                               │
+                               ▼
+                         HBM8 pattern
+                               │
+                               ▼
+                    Pattern empirical anchor
+                         P_pattern
+                               │
+                    ┌──────────┴──────────┐
+                    │                     │
+                    ▼                     ▼
+          ordinary behavioral       theory-failure
+                memory                 memory
+                    │                     │
+                    └──────────┬──────────┘
+                               │
+                     Reward/Q retrieval
+                               │
+                               ▼
+                       contrastive evidence
+                               │
+                               ▼
+                              LLM
+                  theory-consistent evidence
+                  theory-conflicting evidence
+                  historical exception check
+                  individualized integration
+                               │
+                               ▼
+                            P_final
+```
+
+### 4.1 回到原始 `P_pattern`：不再用 ML 计算 individualized prior
+
+当前版本恢复原 V4/V5 的先验设计：五个 deterministic HBM-derived proxy 形成 Motivation / Capability / Activation；memory split 的 median 将三个 meta-dimension 划成 High / Low；得到 8 个 HBM pattern；`P_pattern` 只是该 pattern 在 memory split 中的 smoothed empirical vaccination rate。
+
+同一个 HBM8 pattern 内的 respondent 在进入 LLM 前拥有相同的 population-level behavioral anchor。Memory respondent 自己计算 anchor 时使用 leave-one-out，避免自己的 label 泄漏到自己的 `P_pattern`。
+
+这里**没有 logistic regression、GBDT、XGBoost 或其他 supervised ML probability model**。
+
+### 4.2 Error analysis 放在哪里：只在 offline memory-building 阶段分析 theory failure
+
+Error analysis 不作为 test-time predictor。它只使用 memory split，并在 memory 内进一步划成 `error discovery` 与 `error validation`，用于发现并验证可重复的 same-pattern failure signature。
+
+最基础的 strong theory failure 默认定义为：
+
+```text
+strong positive theory exception:
+actual = vaccinated AND P_pattern <= 35%
+
+strong negative theory exception:
+actual = not vaccinated AND P_pattern >= 65%
+```
+
+35% / 65% 可通过 CLI 调整。普通 case 则是 `P_pattern` 在 50% classification boundary 上与实际 outcome 一致的 historical respondent。
+
+Error analysis 最重要的比较不是“所有错 vs 所有对”，而是：
+
+```text
+同一个 HBM8 pattern 内
+    theory exception
+        vs.
+    ordinary respondent
+```
+
+这样才能回答：**在 theory state 已经相同的情况下，还有哪些 observed configuration 与偏离 theory tendency 有关？**
+
+### 4.3 新增的 error-analysis feature：描述 theory compression / mismatch，而不是预测 label
+
+当前脚本从原始 V4/V5 observed profile 中额外构造一组 deterministic diagnostic feature。这些 feature 不进入任何 supervised probability model，只用于 error analysis、memory description 和 retrieval。
+
+共同 feature 包括：
+
+- `theory_support_mean / std / range`
+- `theory_support_high_count / low_count`
+- `age`、`chronic_count`
+- `threat_component_std / range`
+- `capability_component_gap`
+- `preventive_contact_support`
+- `acute_contact_support`
+- `acute_minus_preventive_contact`
+- `cue_component_spread`
+- `cost_unmet_care_count / hard_access_barrier_count`
+
+V4 进一步增加：`cross_vaccine_mean`、`cross_vaccine_std / range`、`cross_vaccine_positive_count`、`cross_vaccine_mixedness`、`cross_vaccine_theory_disagreement`。这些变量专门描述前面 error analysis 暴露出的 **cross-vaccine transfer mismatch**。
+
+V5 进一步增加：`engagement_component_std / range`、`care_connected_engagement`、`information_minus_care_connected`、`information_only_engagement`，用于区分“信息搜索很多”和“真正与 preventive/care action 连接的 engagement”。
+
+### 4.4 如何判断这些 feature 真的是稳定的 failure signature
+
+脚本在 memory split 内把 error-analysis 数据再次分成 discovery / validation 两半。对于每个 HBM8 pattern，比较 strong theory exception 与 same-pattern ordinary case 的 standardized mean difference（SMD）。
+
+一个 feature 只有满足 discovery 中达到最小 SMD、validation 中方向一致且仍达到最小 SMD，才标记为 `stable signature`。这些 stable signature 的绝对效应大小会转成 **retrieval feature weight**。
+
+因此 error analysis 的结果不是变成一个新的 classifier，而是告诉 retrieval：
+
+> 在寻找 historical analogue / exception 时，哪些 observed dimensions 应该被更认真地比较。
+
+### 4.5 Deterministic failure-profile tag
+
+脚本还根据 discovery split 的 quantile 构造不依赖 outcome label 的 profile descriptor，例如：
+
+- `high_construct_conflict`
+- `capability_component_mismatch`
+- `acute_contact_not_preventive`
+- `cue_granularity_mismatch`
+- `threat_component_heterogeneity`
+- V4：`mixed_cross_vaccine_behavior`
+- V4：`cross_vaccine_transfer_mismatch_candidate`
+- V5：`information_only_engagement`
+- V5：`engagement_granularity_mismatch`
+- V5：`information_vs_care_connected_mismatch`
+- `younger_low_theory_support_profile`
+- `older_high_theory_support_profile`
+
+这些 tag **不是“这个人一定会预测错”的结论，更不是因果机制**。它们只是把 error analysis 发现的 observed configuration 变成检索时可以直接比较的 descriptor。脚本另外输出 discovery/validation 中这些 tag 在 theory exception 与 ordinary case 之间的 prevalence difference。
+
+### 4.6 两类 historical memory
+
+**Ordinary behavioral memory**：`P_pattern` 的方向与真实 outcome 一致的 historical respondent。脚本在每个 HBM8 pattern 内选择靠近该 pattern observed-feature centroid 的代表性 ordinary case。
+
+**Theory-failure memory**：`P_pattern` 与真实 behavior 强烈冲突的 historical respondent。Theory-failure memory 保存 historical outcome、source HBM8 pattern 与 `P_pattern`、exception direction/severity、failure-profile tag、HBM score 和 error-analysis feature summary。
+
+当前版本不要求 LLM 在 memory-building 阶段先生成一段“为什么错”的自由文本。原因是我们希望先让 **data 定义 observable failure signature**，再让 prediction-time LLM 判断这些 historical configuration 是否真正适用于当前 respondent。
+
+### 4.7 Reward / Q 在这一版只负责 memory value，不负责概率
+
+每条 ordinary / theory-failure memory 都得到一个 empirical Q-value。系统在其他 memory respondents 中寻找相似 neighbor，并进行一个小的 counterfactual test：如果按照该 historical case 的 outcome direction，对 neighbor 的 `P_pattern` 做一个很小的 increase / decrease，平均 log loss 是否下降？
+
+简化表示：
+
+```text
+Q(memory)
+≈ historical local loss improvement
+when the memory's direction is applied to similar memory respondents
+```
+
+Q 高代表这条 historical evidence 在相似人群中更有方向性价值；Q 低或负则说明它可能更 idiosyncratic。
+
+**Q 不修改 `P_pattern`，不输出 vaccination probability，也不训练 outcome classifier。**
+
+### 4.8 Reward-guided contrastive retrieval
+
+对新的 respondent，retrieval 默认同时考虑：
+
+```text
+0.45 × original V4/V5 similarity
++ 0.20 × error-analysis-feature similarity
++ 0.25 × empirical Q score
++ 0.07 × same-pattern bonus
++ 0.03 × failure-profile tag overlap
+```
+
+然后分别返回 top ordinary behavioral memories 与 top theory-failure memories。这两组 memory 构成 **contrastive evidence**：LLM 同时看到“通常遵循 theory 的历史人”和“在相似 observed configuration 下曾经偏离 theory 的历史人”。
+
+### 4.9 LLM 负责最终 individualized integration
 
 最终 LLM 输入：
 
-`P_reward + 当前 respondent profile + retrieved reward-valued memories`
+```text
+P_pattern
++
+完整当前 respondent observed profile
++
+当前 respondent 的 error-analysis descriptors / tags
++
+reward-ranked ordinary memories
++
+reward-ranked theory-failure memories
+```
 
-然后判断哪些 memory 真正适用、是否存在 contradiction，以及 probability 应该略微 increase、decrease 还是保持不变。最终仍然只允许围绕 `P_reward` 做一个 bounded residual correction，再由 calibration 选择 classification threshold。
+LLM 必须显式完成 theory-consistent evidence、theory-conflicting evidence、historical exception check、failure-memory apply/reject、individualized integration，并在 `P_pattern` 周围给出 bounded residual adjustment 和 `P_final`。
 
-因此，RG 相比原版最核心的变化可以概括成两点：
+当前 division of labor 是：
 
-> **第一，把粗粒度的 HBM8 pattern prior 进一步学习成更个体化的 reward-calibrated prior；第二，把 reflective memory 从“LLM 生成的经验规则”升级成“经过历史 prediction reward 验证的经验规则”。**
+```text
+HBM
+→ 定义 theory state 与 P_pattern anchor
 
-LLM 本身不进行 fine-tuning。
+Offline error analysis
+→ 发现 theory compression / mismatch 的 observed signature
 
-### TRBM-FLARE-VAX：Theory-Residual Behavioral Memory
+Reward/Q
+→ 判断哪些历史 case 值得被检索
 
-代码：`scripts/82_trbm_flare_vax_asu.py`  
-Ablation：`scripts/83_trbm_ablation_asu.py`
+LLM
+→ 综合 ordinary 与 theory-failure evidence，完成个体化判断
+```
 
-TRBM 在 RG 的基础上进一步限制了 LLM 对 numerical prediction 的影响。它的核心思想是：**先让 HBM theory 自己形成一个明确的基础 probability，再专门学习“HBM theory 在什么情况下会失效”。**
+这里不再存在 learned `P_reward`、ML Failure Router 或 XGBoost residual expert。
 
-因此，TRBM 不再让 LLM 直接决定 probability 或 residual magnitude。LLM 主要负责识别和匹配 **theory-failure mechanism**，而真正的 numerical correction 来自历史数据。
+### 4.10 主要输出
 
-整体流程可以理解成四个阶段：
+每个 V4/V5 run 会产生：
 
-**1. 先把五个 HBM construct 合成为一个明确的 theory prior。**  
-TRBM 仍然使用原 V4/V5 的五个 HBM construct，但先把方向统一成“数值越高，理论上越支持 vaccination”。之后，只使用这五个理论变量拟合一个带 non-negative constraint 的小型 logistic model，得到每个 respondent 的 `P_HBM`。
+```text
+theory_pattern_anchor_all_selected.csv
+derived_failure_analysis_features.csv
+error_analysis_pattern_summary.csv
+error_analysis_same_pattern_signatures_detail.csv
+error_analysis_stable_signatures.csv
+error_analysis_tag_enrichment.csv
+error_analysis_retrieval_feature_weights.csv
+reward_valued_behavioral_memory.csv
+error_analysis_report.md
+```
 
-这里的重点是：`P_HBM` 不是普通 full-feature ML prediction。模型没有使用完整 NHIS raw feature set，而是只使用 HBM-derived constructs，因此它代表的是：
+每个模型目录另外保存 calibration/test prediction、retrieved memory ID、LLM exception check、threshold search 和 `summary.json`。
 
-> **如果只按照当前 HBM theory 表征来判断，这个人应该有多大概率接种。**
+> **Evaluation caution.** 当前 feature family 的设计受到此前 post-hoc error analysis 启发。新脚本虽然把 signature discovery / validation 限制在 memory split 内，但最终 paper-level claim 仍应在冻结代码后使用新的 untouched holdout、另一个 NHIS 年份或独立样本确认。
 
-这样，TRBM 先把“theory 本身能解释多少”单独固定下来。
 
-**2. 再从历史数据中找出 HBM theory 明显解释失败的 case。**  
-在 memory split 中，TRBM 使用 cross-fitting 为每个 respondent 得到一个 OOF `P_HBM`，然后比较这个 theory prior 与真实 vaccination outcome 的差异：
-
-`theory residual = actual - P_HBM_OOF`
-
-如果一个人的 residual 很大，就说明当前五维 HBM representation 对这个人的实际行为出现了明显偏差。例如：
-
-- `P_HBM` 很低，但这个人实际接种了：theory 明显低估；
-- `P_HBM` 很高，但这个人实际没有接种：theory 明显高估。
-
-因此 TRBM 的 memory 不是从“LLM 哪里预测错了”开始，而是从：
-
-> **HBM theory 本身在哪些 historical cases 上解释得不够好？**
-
-开始建立。
-
-**3. 让 LLM 总结这些 theory failure 为什么发生，并在新 respondent 上判断 mechanism 是否能够迁移。**  
-对于 residual 较大的历史 case，LLM 在 memory-building 阶段读取它的 HBM state、`P_HBM`、真实 outcome 和更完整的 observed profile，然后分析：
-
-> 当前 HBM prior 为什么会在这个人身上高估或低估 vaccination behavior？还有什么可观察的机制没有被五个 HBM construct 充分表达？
-
-LLM 把这些 failure 总结成 reusable mechanism memory，例如某类 healthcare engagement、access/capability gap、preventive habit 或 proxy measurement gap。
-
-当 calibration/test 中出现新的 respondent 时，系统先检索与他在 theory state 和 observed context 上相似的 historical theory-failure memories。此时 LLM 只负责做一个 **mechanism gate**：
-
-- 这些 historical failure mechanism 是否真的适用于当前 respondent？
-- 如果适用，历史证据支持 increase 还是 decrease？
-- 如果当前 profile 与 memory 有明显 contradiction，则不使用 correction。
-
-这里 LLM **不重新输出 probability，也不决定具体应该加减多少**。它只回答“这条历史 failure mechanism 能不能迁移到当前人”。
-
-**4. correction magnitude 由 historical residual 决定，并由 calibration 控制最终使用强度。**  
-如果 LLM 判断某些 memory mechanism 可以迁移，系统就读取这些 historical memory 当时真实的 signed residual，根据 respondent similarity 和 memory confidence 进行加权，得到一个 empirical numerical correction。
-
-也就是说：
-
-`LLM 决定 mechanism 是否适用`  
-`历史 residual 决定 correction 大小`
-
-最后，calibration split 再选择一个全局 correction scale `alpha`：
-
-`P_TRBM = P_HBM + alpha × empirical residual correction`
-
-`alpha` 决定最终应该多大程度相信这些 historical residual correction。如果 calibration 发现 memory correction 没有带来稳定 improvement，也可以直接选择 `alpha = 0`，此时最终 prediction 就退回到原来的 `P_HBM`。
-
-因此 TRBM 的 division of labor 非常明确：
-
-> **HBM theory model 负责基础 probability；historical residual 负责 numerical correction magnitude；LLM 只负责判断某个 historical theory-failure mechanism 是否适用于当前 respondent。**
-
-这也是 TRBM 与原版 FLARE-VAX 最大的区别：它进一步把 numerical probability estimation 从 LLM 中拆出来，让 LLM 更像一个 **semantic mechanism matcher**，而不是直接的 probability predictor。
-
-三个版本可以简单对比为：
-
-| 方法 | Base probability | Prediction 时 LLM 的主要任务 | correction magnitude |
-|---|---|---|---|
-| 原始 FLARE-VAX | HBM8 pattern prior | 根据个体 evidence 直接做 residual reasoning | LLM 决定 |
-| RG-FLARE-VAX | Reward-calibrated HBM prior | 读取 Q-valued memory 后做小幅 residual correction | LLM 决定，但范围更小 |
-| TRBM-FLARE-VAX | Theory-constrained `P_HBM` | 判断 historical theory-failure mechanism 是否适用 | Historical residual + calibration `alpha` |
-
-## 2. Zero-shot / Few-shot baseline
+## 5. Zero-shot / Few-shot baseline
 
 代码：`scripts/60_llm_icl_benchmark_asu.py`
 
@@ -162,7 +316,7 @@ LLM 把这些 failure 总结成 reusable mechanism memory，例如某类 healthc
 
 这些 baseline 都不接收 HBM score、pattern、pattern prior、reflective memory 或 FLARE correction rule。
 
-## 3. 其他论文方法的迁移
+## 6. 其他论文方法的迁移
 
 ### 不需要微调大模型
 
@@ -176,9 +330,9 @@ LLM 把这些 failure 总结成 reusable mechanism memory，例如某类 healthc
 
 **Persona-aware and Explainable Bikeability Assessment** — 原文：[arXiv:2601.03534](https://arxiv.org/abs/2601.03534)。原文使用 cyclist persona conditioning、多粒度 supervised fine-tuning 和 AI data augmentation 完成可解释的 bikeability 评分。**状态：仅完成方法调研，尚未迁移到 FLARE-VAX。**
 
-## 4. 结果
+## 7. 结果
 
-### 4.1 ML baseline
+### 7.1 ML baseline
 
 | Version | Model | Accuracy | ROC-AUC | F1 |
 |---|---|---|---|---|
@@ -197,7 +351,7 @@ LLM 把这些 failure 总结成 reusable mechanism memory，例如某类 healthc
 | V5 | svm | 0.6786 | 0.7477 | 0.6636 |
 | V5 | xgboost | 0.6871 | 0.7570 | 0.6697 |
 
-### 4.2 Zero-shot / Few-shot
+### 7.2 Zero-shot / Few-shot
 
 | Version | Model | Method | Test N | Threshold | Accuracy | Balanced Acc. | ROC-AUC | F1 | Status |
 |---|---|---|---:|---:|---:|---:|---:|---:|---|
@@ -224,7 +378,7 @@ LLM 把这些 failure 总结成 reusable mechanism memory，例如某类 healthc
 
 上周尚未完成的 Llama 3 70B benchmark 现在已经补齐。可以看到，多组 direct 8-shot 的输出仍然接近“几乎全部预测为接种”，因此 balanced accuracy 约为 0.50；这里把它作为真实 benchmark 结果保留，而不是继续标记为未完成。`*` V5 70B generic-CoT 最终返回 12,851 个 test prediction（test success rate = 0.999922），比配置的 12,852 少 1 个。
 
-### 4.3 CoPB / PB&J 迁移结果
+### 7.3 CoPB / PB&J 迁移结果
 
 | Version | Model | Method | Test N | Threshold | Accuracy | Balanced Acc. | ROC-AUC | F1 | Status |
 |---|---|---|---:|---:|---:|---:|---:|---:|---|
@@ -237,7 +391,7 @@ LLM 把这些 failure 总结成 reusable mechanism memory，例如某类 healthc
 
 上周尚未完成的 V4 Llama 4 Scout 17B HBM-PB&J 已补跑完成，ROC-AUC 为 0.7610，balanced accuracy 为 0.6970。V5 HBM-PB&J、SILIC 和需要微调的 persona-aware 方法目前仍没有可汇报的 FLARE-VAX 结果。
 
-### 4.4 FLARE-VAX 主方法与 ablation
+### 7.4 FLARE-VAX 主方法与 ablation
 
 | Version | Model | Method | Test N | Threshold | Accuracy | Balanced Acc. | ROC-AUC | F1 | Status |
 |---|---|---|---|---|---|---|---|---|---|
@@ -248,49 +402,88 @@ LLM 把这些 failure 总结成 reusable mechanism memory，例如某类 healthc
 | V5 | Llama 3 70B | FLARE-VAX full run | 12852 | 47 | 0.6255 | 0.6325 | 0.6763 | 0.6597 | complete |
 | V5 | No LLM | HBM8 pattern-only ablation | 12852 | 37 | 0.6255 | 0.6325 | 0.6797 | 0.6597 | complete |
 
+### 7.5 TFM-FLARE-VAX 新版结果
 
-### 4.5 RG-FLARE-VAX 拓展结果
+当前 repository 已包含完整代码与 notebook，但 **Llama 4 Scout 17B / Llama 4 Maverick 17B 的 full V4/V5 结果尚未写入 README**。运行完成后，`benchmark_results.csv` 会至少包含：
 
-| Version | Model | Stage | Test N | Threshold | Accuracy | Balanced Acc. | ROC-AUC | F1 |
-|---|---|---|---:|---:|---:|---:|---:|---:|
-| V4 | Llama 3 70B | Reward-calibrated HBM prior | 12853 | 47 | 0.7371 | 0.7390 | 0.8218 | 0.7363 |
-| V4 | Llama 3 70B | Final reward-valued memory | 12853 | 52 | 0.7384 | 0.7398 | 0.8210 | 0.7351 |
-| V4 | Llama 4 Scout 17B | Reward-calibrated HBM prior | 12853 | 53 | 0.7417 | 0.7403 | 0.8216 | 0.7238 |
-| V4 | Llama 4 Scout 17B | Final reward-valued memory | 12853 | 50 | 0.7390 | 0.7395 | 0.8221 | 0.7308 |
-| V5 | Llama 3 70B | Reward-calibrated HBM prior | 12852 | 45 | 0.6590 | 0.6635 | 0.7223 | 0.6758 |
-| V5 | Llama 3 70B | Final reward-valued memory | 12852 | 50 | 0.6604 | 0.6638 | 0.7208 | 0.6699 |
-| V5 | Llama 4 Scout 17B | Reward-calibrated HBM prior | 12852 | 49 | 0.6580 | 0.6585 | 0.7222 | 0.6493 |
-| V5 | Llama 4 Scout 17B | Final reward-valued memory | 12852 | 46 | 0.6604 | 0.6635 | 0.7204 | 0.6686 |
+| Version | Model | Method | Accuracy | Balanced Acc. | ROC-AUC | F1 |
+|---|---|---|---:|---:|---:|---:|
+| V4 | Llama 4 Scout 17B | Pattern anchor | pending | pending | pending | pending |
+| V4 | Llama 4 Scout 17B | TFM-FLARE-VAX | pending | pending | pending | pending |
+| V5 | Llama 4 Scout 17B | Pattern anchor | pending | pending | pending | pending |
+| V5 | Llama 4 Scout 17B | TFM-FLARE-VAX | pending | pending | pending | pending |
+| V4 | Llama 4 Maverick 17B | Pattern anchor | pending | pending | pending | pending |
+| V4 | Llama 4 Maverick 17B | TFM-FLARE-VAX | pending | pending | pending | pending |
+| V5 | Llama 4 Maverick 17B | Pattern anchor | pending | pending | pending | pending |
+| V5 | Llama 4 Maverick 17B | TFM-FLARE-VAX | pending | pending | pending | pending |
 
-目前最明显的 improvement 来自 reward-calibrated prior：V4 的 ROC-AUC 从 HBM8 pattern-only 的约 0.769 提升到约 0.822，V5 从约 0.680 提升到约 0.720–0.722。Reward-valued memory 在部分配置中会改变 balanced accuracy、F1 和最终 operating point，但并没有在所有 probability metric 上稳定超过 reward prior，因此这里把两部分结果分开汇报。
+可选 `--run-ordinary-only-ablation` 会额外得到 `ordinary_memory_only`，用于判断 theory-failure memory 是否比只检索 ordinary historical cases 带来增量价值。
 
-### 4.6 TRBM-FLARE-VAX 拓展结果
+## 8. Curated repository structure / GitHub 中保留的内容
 
-TRBM 目前仍在继续补跑。本周 README **只把 V4 + Llama 4 Scout 17B 作为已经完成的结果保留**；其他计划中的组合继续列在表里，但统一用 `--` 占位，表示尚未跑完。
+```text
+scripts/
+  01_ml_baselines.py
+  40_flare_vax_v4_with_vaccine_history.py
+  50_flare_vax_v5_without_vaccine_history.py
+  60_llm_icl_benchmark_asu.py
+  70_hbm_copb_pbj_baselines_asu.py
+  80_silic_v4_inverse_contextual_reward_asu.py
+  81_theory_failure_memory_flare_vax_asu.py
+  90_collect_results.py
+notebooks/
+  81_theory_failure_memory_flare_vax_asu.ipynb
+configs/
+docs/
+data/README.md
+results/
+  ml/
+  icl/
+  transfer_baselines/
+  flare_vax/
+  theory_failure_memory/
+```
 
-| Version | Model | Method | Test N | Memories | Threshold | Correction scale α | Accuracy | Balanced Acc. | ROC-AUC | F1 | Status |
-|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---|
-| V4 | Llama 4 Scout 17B | TRBM full | 12853 | 459 | 0.48 | 0.00 | 0.7390 | 0.7371 | 0.8205 | 0.7181 | complete |
-| V4 | Llama 4 Scout 17B | TRBM full — survey weighted | 12853 | 459 | 0.48 | 0.00 | 0.7315 | 0.7236 | 0.8113 | 0.6812 | complete |
-| V4 | Llama 3 70B | TRBM full | -- | -- | -- | -- | -- | -- | -- | -- | not completed yet |
-| V4 | Llama 3 70B | TRBM full — survey weighted | -- | -- | -- | -- | -- | -- | -- | -- | not completed yet |
-| V5 | Llama 4 Scout 17B | TRBM full | -- | -- | -- | -- | -- | -- | -- | -- | not completed yet |
-| V5 | Llama 4 Scout 17B | TRBM full — survey weighted | -- | -- | -- | -- | -- | -- | -- | -- | not completed yet |
-| V5 | Llama 3 70B | TRBM full | -- | -- | -- | -- | -- | -- | -- | -- | not completed yet |
-| V5 | Llama 3 70B | TRBM full — survey weighted | -- | -- | -- | -- | -- | -- | -- | -- | not completed yet |
+为了避免把 exploratory model lineage 误当成当前最终方法，公开 package 已移除旧 numerical-reward / theory-residual / ML-router / residual-expert script、notebook 与对应 public result folder。早期探索只在上面的 development-history 小节中保留简短方法学总结。
 
-目前完成的两个 V4 Scout 17B run 中，calibration 都选择了 `alpha = 0.00`。因此现阶段最终 TRBM probability 实际上等于 theory-constrained `P_HBM`：reflection memory 和 mechanism gate 已经运行，但它们产生的 residual correction 没有被 calibration 保留下来。未加 survey weight 的版本 ROC-AUC 为 0.8205，survey-weighted 版本为 0.8113。其他 TRBM 组合等全部跑完后再补入正式数值。
+GitHub 中继续排除原始 NHIS 数据、逐 respondent API JSONL、local absolute path、credentials、checkpoint 和执行状态。
 
-## 5. GitHub 中保留的内容
-
-保留：V4/V5 主代码、ML baseline、统一 ICL baseline、CoPB/PB&J、SILIC 初步实现、必要配置、方法文档和汇总级结果。
-
-本次拓展另外加入 RG-FLARE-VAX、TRBM-FLARE-VAX、TRBM ablation，以及对应的公开汇总结果文件；原有 README 内容和旧方法结果均继续保留。
-
-剔除：早期 HBM2 开发脚本、带本地运行状态的 notebook、checkpoint、逐样本 prediction、API 日志、support map、本地路径、失败日志以及原始 NHIS 数据。
-
-安装依赖：
+## 9. Reproduction / 复现
 
 ```bash
 pip install -r requirements.txt
 ```
+
+不调用 API 的完整 offline dry run：
+
+```bash
+python scripts/81_theory_failure_memory_flare_vax_asu.py \
+  --input-csv /path/to/adult24.csv \
+  --output-dir /path/to/tfm_results \
+  --variants v4,v5 \
+  --models llama4-scout-17b \
+  --dry-run
+```
+
+正式运行两个主要模型：
+
+```bash
+python scripts/81_theory_failure_memory_flare_vax_asu.py \
+  --input-csv /path/to/adult24.csv \
+  --output-dir /path/to/tfm_results \
+  --variants v4,v5 \
+  --models llama4-scout-17b,llama4-maverick-17b \
+  --base-url https://openai.rc.asu.edu/v1 \
+  --threshold-metric accuracy
+```
+
+如需完全复用旧 V4/V5 source-row split：
+
+```bash
+--v4-reference-split /path/to/v4_split_assignments.csv \
+--v5-reference-split /path/to/v5_split_assignments.csv
+```
+
+最重要的额外 ablation：`--run-ordinary-only-ablation`，比较 `Pattern anchor`、`Ordinary memory only` 与 `TFM-FLARE-VAX full contrastive memory`。
+
+LLM runner 默认使用 ASU OpenAI-compatible endpoint，并从 `ASU_OPENAI_API_KEY`、`OPENAI_API_KEY` 或 `--api-key` 读取 credential。
