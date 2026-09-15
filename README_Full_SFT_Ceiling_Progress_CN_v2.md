@@ -254,16 +254,6 @@ final_adapter/
 
 训练过程中使用 dynamic padding。
 
-本轮 full SFT 没有额外拆 validation set；固定的 60% train 被全部用于最终 full-run SFT benchmark。
-
-正式 full run 总训练时间约：
-
-```text
-9,637 seconds ≈ 2.68 hours
-```
-
-使用一张 A100 80GB GPU。
-
 ---
 
 # 7. SFT Inference / Binary Decision
