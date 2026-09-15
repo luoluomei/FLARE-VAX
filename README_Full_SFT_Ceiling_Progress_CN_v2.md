@@ -690,72 +690,6 @@ Recovered fraction
 
 ---
 
-# 15. 一个非常重要的 Ceiling Caveat
-
-不能把：
-
-```text
-78.3%–79.2%
-```
-
-解释成严格、不可突破的“理论最大 accuracy”。
-
-原因主要有两个。
-
-### 第一，当前 ceiling 是 empirical diagnostic
-
-它依赖于：
-
-- finite-sample nearest neighbor；
-- 当前 62-feature representation；
-- 当前 Hamming-style distance；
-- sample size；
-- nearest-neighbor tie；
-- representation quality。
-
-因此它更适合被理解为：
-
-```text
-information-saturation reference
-```
-
-而不是：
-
-```text
-absolute mathematical upper bound
-```
-
-### 第二，SFT 与 XGBoost 的 error 并不完全重合
-
-当前：
-
-```text
-SFT correct / XGB wrong = 482
-XGB correct / SFT wrong = 464
-```
-
-如果构造一个实际无法直接获得的 oracle：
-
-> 对每一个 test respondent，只要 SFT 或 XGBoost 任意一个预测正确，就选择那个正确预测。
-
-那么该 oracle-union accuracy 大约可以达到：
-
-```text
-80.33%
-```
-
-已经超过约 79% 的 nearest-neighbor diagnostic。
-
-因此：
-
-> **78.3%–79.2% 应被理解为 empirical ceiling diagnostic，而不是 hard upper bound。**
-
-它的主要作用是说明：
-
-> 当前 76.7% 的模型已经进入接近当前数据可预测信息饱和的区域。
-
----
-
 # 16. 当前 Full-Run 阶段的核心结论
 
 ## Finding 1 — SFT 已达到强 tabular ML baseline 水平
@@ -938,21 +872,6 @@ Qwen3.5 standard Transformers path
 training / inference speed
 ```
 
-也就是说：
-
-> **当前主要限制是运行速度较慢，而不是因为 FLA 没有启用而改变了实验任务定义或 evaluation setup。**
-
-因此 full SFT 在一张 A100 80GB 上仍需要约：
-
-```text
-2.68 hours
-```
-
-后续如果能够稳定安装和启用 FLA / optimized kernel path，预计主要收益会体现在工程效率和大规模 repeated experiments 的运行成本上，而不是把它作为当前方法本身的研究贡献。
 
 ---
-
-# 19. 一句话阶段总结
-
-> **Using a fixed 60/40 stratified split of 32,070 NHIS respondents, LoRA fine-tuning Qwen3.5-9B on 19,242 training cases achieved 76.72% test accuracy and 0.850 ROC-AUC, essentially matching XGBoost (76.57%, AUC 0.847). A nearest-neighbor/Cover–Hart-based empirical diagnostic places the usable information ceiling of the current 62-feature representation at roughly 78%–79%, suggesting that the full-data SFT model has already entered a performance-saturation regime. The main engineering limitation in the current implementation is that the FLA fast-kernel path was not successfully enabled, so the reported runs used the standard Qwen3.5/Transformers implementation and were correspondingly slower.**
 
