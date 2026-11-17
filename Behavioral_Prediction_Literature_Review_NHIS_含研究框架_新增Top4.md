@@ -229,7 +229,7 @@ LLM 被用于模拟虚拟受访者的政治和社会观点，以降低传统调�
 
 **比较设置：** LLM 与 RF 使用相同验证样本和特征池，但 LLM 是 Frozen、RF 使用训练标签；这体现了两种不同适应条件下的比较。
 
-### 3.4 原文是四个连续 Experiments，不是三个
+### 3.4 原文是四个连续 Experiments
 
 #### Experiment 1 — Random / Constant Baselines + Minimal Backstory
 
